@@ -2,8 +2,8 @@
 
 Login info: ssh -l azd6024 submit.aci.ics.psu.edu
 
-##Getting resequencing data
-#Data details
+## Getting resequencing data
+# Data details
 Here is a vcf for variants (SNP, MNP, indel independently) for all the resequencing libraries of Sorghum. This includes
 375 BAP-TERRA
 90 CASP-TERRA-PNNL
