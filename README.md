@@ -97,7 +97,6 @@ java -jar SnpSift.jar split -l 10000 Sorghum_1757g_AllChr.polymorphic.snp.noRepe
 for f in *.vcf
 do
 	java -jar /projects/luwh7529/software_builds/Beagle/beagle.05May22.33a.jar gt=$f out=$f".imputed"
-        #echo $f
 done
 
 # Run a series of steps to bgzip, index, and bcftools concatenate the separate imputed vcf files
