@@ -58,10 +58,17 @@ wget --user sorg_wga --password 3074bico https://hagsc.org/restricted_access/sor
 
 ## Chapter 2: SnpEff (by Luke)
 
+**Introduction**
+SnpEff is an open source tool that annotates variants and predicts their effects on genes by using an interval forest approach. This program takes pre-determined variants listed in a data file that contains the nucleotide change and its position and predicts if the variants are deleterious.
+
+**Ratiionale**
 
 
+**Codes**
 
-
+```
+sss
+```
 
 
 ------
