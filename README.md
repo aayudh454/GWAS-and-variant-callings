@@ -87,7 +87,52 @@ java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.po
 
 ## Chapter 3: Running Beagle (by Luke) 
 
+```
+# Run Beagle on the relatively small indels vcf file 
+java -jar beagle.05May22.33a.jar gt=Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.vcf.gz out=Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed
 
+# Split the very large (432GB unzipped) vcf file for SNPs into ~10,000-line chunks
+java -jar SnpSift.jar split -l 10000 Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.vcf.gz
+
+# Run Beagle on each of the subset vcf files output from SnpSift
+for f in *.vcf
+do
+	java -jar /projects/luwh7529/software_builds/Beagle/beagle.05May22.33a.jar gt=$f out=$f".imputed"
+        #echo $f
+done
+
+# Run a series of steps to bgzip, index, and bcftools concatenate the separate imputed vcf files
+
+#gunzip the existing gz files
+gunzip *.vcf.gz
+
+#rezip the files using bgzip
+for f in *.vcf
+do
+	bgzip $f
+done
+
+
+#index the files using bcftools
+for f in *.vcf.gz
+do
+	bcftools index $f
+done
+
+
+#index the files with bcftools index
+for f in *.vcf.gz
+do
+	bcftools index $f
+done
+
+
+#concatenate the resulting bgzipped and index vcf files into a single combined file
+ls *.vcf.gz > vcfoutfiles.txt
+
+bcftools concat --file-list vcfoutfiles.txt > Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf.gz
+
+```
 
 
 
