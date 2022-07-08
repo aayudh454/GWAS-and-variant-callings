@@ -1,4 +1,4 @@
-# LASKY-MORRIS LAB Sorghum project
+# LASKY-MORRIS LAB: Sorghum project
 
 ## Table of contents    
 * [Page 1: 2020-12-05](#id-section1). Chapter 1: Getting resequencing data (by Luke and Aayudh)
