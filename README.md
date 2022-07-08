@@ -47,10 +47,16 @@ http://hagsc.org/restricted_access/sorg_wga/Sorghum_all_1757g_metadata.txt
 username: sorg_wga
 password: 3074bico
 
-Code to wget
+1. Code to wget
 ```
 wget --user sorg_wga --password 3074bico https://hagsc.org/restricted_access/sorg_wga/Sorghum_1757g_AllChr_1757g.tar.gz
 ```
+2. Unzip data
+
+```
+tar -zxvf Sorghum_1757g_AllChr_1757g.tar.gz
+```
+
 
 -----
 <div id='id-section2'/>
