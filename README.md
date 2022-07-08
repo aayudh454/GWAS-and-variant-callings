@@ -44,12 +44,11 @@ Here is a vcf for variants (SNP, MNP, indel independently) for all the resequenc
 Download LInks:
 http://hagsc.org/restricted_access/sorg_wga/Sorghum_1757g_AllChr_1757g.tar.gz
 http://hagsc.org/restricted_access/sorg_wga/Sorghum_all_1757g_metadata.txt
-username: sorg_wga
-password: 3074bico
+
 
 1. Code to wget
 ```
-wget --user sorg_wga --password 3074bico https://hagsc.org/restricted_access/sorg_wga/Sorghum_1757g_AllChr_1757g.tar.gz
+wget --user xyz --password xyz https://hagsc.org/restricted_access/sorg_wga/Sorghum_1757g_AllChr_1757g.tar.gz
 ```
 2. Unzip data
 
