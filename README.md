@@ -102,7 +102,7 @@ done
 # Run a series of steps to bgzip, index, and bcftools concatenate the separate imputed vcf files
 
 #gunzip the existing gz files
-gunzip *.vcf.gz
+gunzip *.imputed.vcf.gz
 
 #rezip the files using bgzip
 for f in *.vcf
@@ -112,23 +112,18 @@ done
 
 
 #index the files using bcftools
-for f in *.vcf.gz
-do
-	bcftools index $f
-done
-
-
-#index the files with bcftools index
-for f in *.vcf.gz
+for f in *.imputed.vcf.gz
 do
 	bcftools index $f
 done
 
 
 #concatenate the resulting bgzipped and index vcf files into a single combined file
-ls *.vcf.gz > vcfoutfiles.txt
+ls *imputed.vcf.gz > vcfoutfiles.txt
 
-bcftools concat --file-list vcfoutfiles.txt > Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf.gz
+bcftools concat --file-list vcfoutfiles.txt > Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf
+
+bgzip Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf
 
 ```
 
