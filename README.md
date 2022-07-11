@@ -104,14 +104,14 @@ done
 #gunzip the existing gz files
 gunzip *.imputed.vcf.gz
 
-#rezip the files using bgzip
+#rezip the files using bgzip (otherwise bcftools won't parse the files)
 for f in *.vcf
 do
 	bgzip $f
 done
 
 
-#index the files using bcftools
+#index the files using bcftools (this way they can be concatenated together)
 for f in *.imputed.vcf.gz
 do
 	bcftools index $f
