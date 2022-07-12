@@ -60,31 +60,7 @@ tar -zxvf Sorghum_1757g_AllChr_1757g.tar.gz
 -----
 <div id='id-section2'/>
 
-
-## Chapter 2: SnpEff (by Luke)
-
-**Introduction**
-SnpEff is an open source tool that annotates variants and predicts their effects on genes by using an interval forest approach. This program takes pre-determined variants listed in a data file that contains the nucleotide change and its position and predicts if the variants are deleterious.
-
-**Rationale**
-Running SnpEff provides predicted effect sizes for the observed SNPs in the variant dataset
-
-**Codes**
-
-```
-java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.vcf > Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf
-
-java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.vcf.gz > Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.ann.vcf
-
-```
-
-
-------
-
-<div id='id-section3'/>
-
-
-## Chapter 3: Running Beagle (by Luke) 
+## Chapter 2: Running Beagle (by Luke) 
 
 **Rationale**
 Beagle performs genomic imputation on variant calls, which will be useful for downstream analyses. The goal is for everyone to use the same set of 
@@ -131,10 +107,39 @@ bgzip Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined
 
 ```
 
+------
 
+
+<div id='id-section3'/>
+
+## Chapter 3: SnpEff (by Luke)
+
+**Introduction**
+SnpEff is an open source tool that annotates variants and predicts their effects on genes by using an interval forest approach. This program takes pre-determined variants listed in a data file that contains the nucleotide change and its position and predicts if the variants are deleterious.
+
+**Rationale**
+Running SnpEff provides predicted effect sizes for the observed SNPs in the variant dataset
+
+**Codes**
+
+```
+# Run SnpEff on the full resequencing variant calls vcf SNPs
+java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.vcf > Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf
+
+# Run SnpEff on the full resequencing variant calls vcf indels
+java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.vcf.gz > Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.ann.vcf
+
+# Run snpEff on the *imputed* full resequencing vcf variant calls SNPs
+java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf > Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.ann.vcf
+
+# Run snpEff on the *imputed* full resequencing vcf variant calls indels
+java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz > Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.ann.vcf
+
+```
 
 
 ------
+
 
 <div id='id-section4'/>
 
