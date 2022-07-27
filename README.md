@@ -1,7 +1,7 @@
 # LASKY-MORRIS LAB: Sorghum project
 
 ## Table of contents    
-* [Page 1: 2020-12-05](#id-section1). Chapter 1: Getting resequencing data (by Luke and Aayudh)
+* [Page 1: 2020-12-05](#id-section1). Chapter 1: Getting resequencing data (by Aayudh)
 
 * [Page 2: 2020-12-05](#id-section2). Chapter 2: SnpEff (by Luke)
 
@@ -27,7 +27,7 @@
 ------
 <div id='id-section1'/>
 
-## Chapter 1: Getting resequencing data (by Luke and Aayudh)
+## Chapter 1: Getting resequencing data (by Aayudh)
 
 #Getting resequencing data
 Login info: ssh -l azd6024 submit.aci.ics.psu.edu
@@ -55,7 +55,13 @@ wget --user xyz --password xyz https://hagsc.org/restricted_access/sorg_wga/Sorg
 ```
 tar -zxvf Sorghum_1757g_AllChr_1757g.tar.gz
 ```
+*Getting GBS SNP data 10.3835/plantgenome2018.06.0044*
 
+ssh azd6024@128.118.42.11
+
+```
+cd /data/Sorghum/Hu_GBS_2019/
+```
 
 -----
 <div id='id-section2'/>
