@@ -149,7 +149,7 @@ Let’s take a peek inside the vcf file first.
 Note: zcat lets us open a .gz (gzipped) file; we then “pipe” | this output from zcat to the head command and print as many lines as we want -n #
 
 ```
-zcat Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz | head -n 11
+zcat Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz | head -n 8
 ```
 
 output details
