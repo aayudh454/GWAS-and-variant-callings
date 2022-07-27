@@ -149,6 +149,24 @@ Let’s take a peek inside the vcf file first.
 Note: zcat lets us open a .gz (gzipped) file; we then “pipe” | this output from zcat to the head command and print as many lines as we want -n #
 
 ```
+zcat Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf.gz | head -n 8
+```
+
+**Details of the vcf.gz file**
+
+```
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##filedate=20220706
+##source="beagle.05May22.33a.jar"
+##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated ALT Allele Frequencies">
+##INFO=<ID=DR2,Number=A,Type=Float,Description="Dosage R-Squared: estimated squared correlation between estimated REF dose [P(RA) + 2*P(RR)] and true REF dose">
+##INFO=<ID=IMP,Number=0,Type=Flag,Description="Imputed marker">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+```
+See the idel file
+
+```
 zcat Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz | head -n 8
 ```
 
