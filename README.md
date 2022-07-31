@@ -190,3 +190,18 @@ output details
 ##FORMAT=<ID=DS,Number=A,Type=Float,Description="estimated ALT dose [P(RA) + 2*P(AA)]">
 ```
 
+Intalling vcftools
+
+```
+ $ cd ~/work
+ $ git clone https://github.com/vcftools/vcftools.git
+ $ cd vcftools/
+ $ ./autogen.sh 
+ $ ./configure --prefix=/storage/work/azd6024/vcftools
+ $  make
+ $  make install
+   
+ $ echo "export PATH=/storage/work/azd6024/vcftools/bin:$PATH" >> ~/.bashrc
+ $ source bashrc
+ $  vcftools --help
+ ```
