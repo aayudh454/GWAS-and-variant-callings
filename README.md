@@ -205,3 +205,28 @@ echo "export PATH=/storage/work/azd6024/vcftools/bin:$PATH" >> ~/.bashrc
 source ~/.bashrc
 vcftools --help
  ```
+**1. Getting info with vcf.gz file**
+
+Create a .sh file (vi test.sh) with a code embedded to run it in server
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=10:00:00
+#PBS -l pmem=48gb
+#PBS -A open
+
+WORKINGDIR=/storage/home/azd6024/work/test_vcffiles
+cd $WORKINGDIR
+
+vcftools --gzvcf Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf.gz
+```
+Paste this code in the test.sh and save by *wq* then *qsub test.sh*
+
+*WHAT THIS VCF.GZ FILE CONTAINS*
+After filtering, kept 1757 out of **1757 Individuals**
+After filtering, kept 64618398 out of a possible **64618398 Sites**
+
+
+ 
