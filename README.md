@@ -202,6 +202,6 @@ make
 make install
    
 echo "export PATH=/storage/work/azd6024/vcftools/bin:$PATH" >> ~/.bashrc
-source bashrc
+source ~/.bashrc
 vcftools --help
  ```
