@@ -190,7 +190,7 @@ output details
 ##FORMAT=<ID=DS,Number=A,Type=Float,Description="estimated ALT dose [P(RA) + 2*P(AA)]">
 ```
 
-Intalling vcftools
+**Intalling vcftools**
 
 ```
 cd ~/work
