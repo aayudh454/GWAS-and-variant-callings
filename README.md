@@ -224,7 +224,8 @@ vcftools --gzvcf Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imput
 ```
 Paste this code in the test.sh and save by *wq* then *qsub test.sh*
 
-*WHAT THIS VCF.GZ FILE CONTAINS*
+*WHAT THIS VCF.GZ FILE CONTAINS?*
+
 After filtering, kept 1757 out of **1757 Individuals**
 After filtering, kept 64618398 out of a possible **64618398 Sites**
 
