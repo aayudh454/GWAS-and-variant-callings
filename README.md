@@ -55,7 +55,7 @@ wget --user xyz --password xyz https://hagsc.org/restricted_access/sorg_wga/Sorg
 ```
 tar -zxvf Sorghum_1757g_AllChr_1757g.tar.gz
 ```
-*Getting GBS SNP data 10.3835/plantgenome2018.06.0044*
+**Getting GBS SNP data 10.3835/plantgenome2018.06.0044**
 
 ssh azd6024@128.118.42.11
 
