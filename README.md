@@ -62,6 +62,11 @@ ssh azd6024@128.118.42.11
 ```
 cd /data/Sorghum/Hu_GBS_2019/
 ```
+**DATA STORAGE IN LASKY LAB**
+
+```
+/gpfs/group/jrl35/default/aayudh
+```
 
 -----
 <div id='id-section2'/>
