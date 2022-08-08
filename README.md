@@ -176,7 +176,7 @@ zcat Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=DS,Number=A,Type=Float,Description="estimated ALT dose [P(RA) + 2*P(AA)]">
 ```
-See the idel file
+See the indel file
 
 ```
 zcat Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz | head -n 8
@@ -234,5 +234,27 @@ Paste this code in the test.sh and save by *wq* then *qsub test.sh*
 After filtering, kept 1757 out of **1757 Individuals**
 After filtering, kept 64618398 out of a possible **64618398 Sites**
 
+**STEPS for GWAS**
 
+1. First create gds file from vcf or vcf.gz file.
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=24:00:00
+#PBS -l pmem=48gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+setwd("~/scratch/test_reseq_gunzip")
+
+library(gdsfmt)
+library(SNPRelate)
+
+vcf.fn <- "/storage/home/azd6024/scratch/test_reseq_gunzip/Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf"
+
+snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
+```
  
