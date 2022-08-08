@@ -9,7 +9,7 @@
 
 * [Page 4 2020-12-07](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
-* [Page 5 2020-12-08](#id-section5). Chapter 5: 
+* [Page 5 2020-12-08](#id-section5). Chapter 5: GWAS using vcftools
 
 * [Page 6 2020-12-08](#id-section6). Chapeter 6: 
 
@@ -176,24 +176,42 @@ zcat Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=DS,Number=A,Type=Float,Description="estimated ALT dose [P(RA) + 2*P(AA)]">
 ```
-See the indel file
+
+
+
+### STEPS for GWAS
+
+1. First create gds file from vcf or vcf.gz file.
 
 ```
-zcat Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz | head -n 8
-```
+#!/usr/bin/env Rscript
 
-output details
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=24:00:00
+#PBS -l pmem=48gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
 
+setwd("~/scratch/test_reseq_gunzip")
+
+library(gdsfmt)
+library(SNPRelate)
+
+vcf.fn <- "/storage/home/azd6024/scratch/test_reseq_gunzip/Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf"
+
+snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
 ```
-##fileformat=VCFv4.2
-##filedate=20220705
-##source="beagle.05May22.33a.jar"
-##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated ALT Allele Frequencies">
-##INFO=<ID=DR2,Number=A,Type=Float,Description="Dosage R-Squared: estimated squared correlation between estimated REF dose [P(RA) + 2*P(RR)] and true REF dose">
-##INFO=<ID=IMP,Number=0,Type=Flag,Description="Imputed marker">
-##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-##FORMAT=<ID=DS,Number=A,Type=Float,Description="estimated ALT dose [P(RA) + 2*P(AA)]">
-```
+ 
+ 
+ 
+
+
+<div id='id-section5'/>
+
+## Chapter 5: GWAS using vcftools
+
+
 
 **Intalling vcftools**
 
@@ -233,28 +251,4 @@ Paste this code in the test.sh and save by *wq* then *qsub test.sh*
 
 After filtering, kept 1757 out of **1757 Individuals**
 After filtering, kept 64618398 out of a possible **64618398 Sites**
-
-### STEPS for GWAS
-
-1. First create gds file from vcf or vcf.gz file.
-
-```
-#!/usr/bin/env Rscript
-
-#PBS -l nodes=1:ppn=8
-#PBS -l walltime=24:00:00
-#PBS -l pmem=48gb
-#PBS -M azd6024@psu.edu
-#PBS -A open
-#PBS -j oe
-
-setwd("~/scratch/test_reseq_gunzip")
-
-library(gdsfmt)
-library(SNPRelate)
-
-vcf.fn <- "/storage/home/azd6024/scratch/test_reseq_gunzip/Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf"
-
-snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
-```
  
