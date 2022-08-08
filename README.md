@@ -177,8 +177,6 @@ zcat Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.
 ##FORMAT=<ID=DS,Number=A,Type=Float,Description="estimated ALT dose [P(RA) + 2*P(AA)]">
 ```
 
-
-
 ### STEPS for GWAS
 
 **1. First create gds file from vcf or vcf.gz file.**
@@ -203,7 +201,8 @@ vcf.fn <- "/storage/home/azd6024/scratch/test_reseq_gunzip/Sorghum_1757g_AllChr.
 snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
 ```
 
-**Create the id matching files with trait value** 
+**2. Create the id matching files with trait value** 
+We are using accessions from Lasky et al (2015)
 
 ```
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
