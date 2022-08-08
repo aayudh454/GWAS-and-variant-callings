@@ -181,7 +181,7 @@ zcat Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.
 
 ### STEPS for GWAS
 
-1. First create gds file from vcf or vcf.gz file.
+**1. First create gds file from vcf or vcf.gz file.**
 
 ```
 #!/usr/bin/env Rscript
@@ -202,9 +202,112 @@ vcf.fn <- "/storage/home/azd6024/scratch/test_reseq_gunzip/Sorghum_1757g_AllChr.
 
 snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
 ```
- 
- 
- 
+
+**Create the id matching files with trait value** 
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
+list.files()
+
+lasky_2015 <- read.csv("Lasky_2015_Accessions_cords.csv")
+head(lasky_2015)
+
+Reseq_matadata <- read.csv("Sorghum_all_1757g_metadata.csv")
+head(Reseq_matadata)
+final_data_1 <- gsub("_","",Reseq_matadata$sample)
+head(final_data_1)
+Reseq_matadata_1 <- cbind (Reseq_matadata,final_data_1)
+head(Reseq_matadata_1)
+names(Reseq_matadata_1)[names(Reseq_matadata_1) == 'final_data_1'] <- 'Accession'
+
+Reseq_lasky<- merge(Reseq_matadata_1,lasky_2015, by="Accession")
+dim(Reseq_lasky)
+head(Reseq_lasky)
+library(data.table)
+MASTER_data_final <- unique(setDT(Reseq_lasky)[order(Accession, -Accession)], by = "Accession")
+dim(MASTER_data_final)
+head(MASTER_data_final)
+
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+preds.all
+
+Suitability_data <- raster::extract(preds.all, MASTER_data_final[,c("Lon","Lat")])
+ReseqGWAS_traits <- cbind(MASTER_data_final,Suitability_data)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
+write.table(ReseqGWAS_traits, "1. ReseqGWAS_traits.csv", sep=",")
+```
+
+**3. From genofile to ibs.matrix,mySNPbed.bed and HS_score_BimBam.txt file.** 
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=24:00:00
+#PBS -l pmem=48gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+setwd("~/scratch/gwas_reseq")
+
+library(gdsfmt)
+library(SNPRelate)
+
+genofile <- snpgdsOpen('Sorghum_1757g_2ndtry.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+snp.id <- read.gdsn(index.gdsn(genofile, 'snp.id'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.allele <- read.gdsn(index.gdsn(genofile, 'snp.allele'))
+snp.rs.id <- read.gdsn(index.gdsn(genofile, 'snp.rs.id'))
+
+#you can use your traits file to get SNPs only for genotypes with phenotypic data
+#the trait file should have a column 'sample.id' that corresponds to the id in the genofile
+traits <- data.frame(read.csv('1. ReseqGWAS_traits.csv', header=TRUE))
+head(traits)
+
+#no need to account for LD when getting SNPs for GWAS. 
+mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0)
+length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+#these lines create the bed file for gemma
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions), 'A', 'T', t(mySNPmatrix$genotype)) 
+write.table(SNPs_bim, 'mySNPbed.bed', row.names = FALSE, quote = FALSE, col.names = FALSE, sep = ',') 
+
+#kinship matrix for gemma obtained with 'identity by state'
+ibs <- snpgdsIBS(genofile, sample.id=traits$LIB, snp.id=mySNPs, maf = 0.05, missing.rate = 0)
+ibs.matrix <- ibs$ibs
+dim(ibs.matrix)
+
+write.table(ibs.matrix, 'ibs_matrix.txt', row.names = FALSE, col.names = FALSE, quote = FALSE, sep = ', ')
+
+#prepare the trait data for gemma, accessions should be in the same order as in the genetic matrices
+order <- as.data.frame(ibs$sample.id)
+dim(order)
+colnames(order) <- c("sample.id")
+
+order.idx <- match(order$sample.id, traits$LIB)
+order.idx
+
+ordered <- traits[order.idx,]
+
+write.table(ordered$Suitability_data, 'HS_score_BimBam.txt', row.names = FALSE, quote = FALSE, col.names = FALSE)
+```
+
+
 
 
 <div id='id-section5'/>
