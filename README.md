@@ -336,11 +336,15 @@ cd $WORKINGDIR
 ```
 
 **number of total individuals = 183**
+
 number of analyzed individuals = 183
 number of covariates = 1
 number of phenotypes = 1
+
 **number of total SNPs/var        =  7446433**
+
 **number of analyzed SNPs         =  7446389**
+
 Start Eigen-Decomposition...
 pve estimate =0.902493
 se(pve) =0.109123
