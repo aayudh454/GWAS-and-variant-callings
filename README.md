@@ -349,6 +349,26 @@ Start Eigen-Decomposition...
 pve estimate =0.902493
 se(pve) =0.109123
 
+REMLE log-likelihood in the null model = 67.5743
+
+MLE log-likelihood in the null model = 72.7098
+
+pve estimate in the null model = 0.902493
+
+se(pve) in the null model = 0.109123
+
+vg estimate in the null model = 0.146957
+
+ve estimate in the null model = 0.00438676
+
+beta estimate in the null model =   0.276618
+
+se(beta) =   0.00489606
+
+
+
+
+
 
 <div id='id-section5'/>
 
