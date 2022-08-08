@@ -321,8 +321,22 @@ chmod 700 gemma-0.98.5-linux-static
 *Run gemma*
 
 ```
-./gemma-0.98.5-linux-static -g mySNPbed.bed -k ibs_matrix.txt -lmm 4 -miss 0.1 -p HS_score_BimBam.txt -o trait_1_out
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=24:00:00
+#PBS -l pmem=48gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+
+WORKINGDIR=/storage/home/azd6024/work/gwas_reseq
+cd $WORKINGDIR
+
+./gemma-0.98.5-linux-static -g mySNPbed.bed -k ibs_matrix.txt -lmm 4 -miss 0.1 -p HS_score_BimBam.txt -o Reseq_gwas_HS_score_out
 ```
+
+
+
 
 <div id='id-section5'/>
 
