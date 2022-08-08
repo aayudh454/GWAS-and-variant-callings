@@ -234,7 +234,7 @@ Paste this code in the test.sh and save by *wq* then *qsub test.sh*
 After filtering, kept 1757 out of **1757 Individuals**
 After filtering, kept 64618398 out of a possible **64618398 Sites**
 
-**STEPS for GWAS**
+### STEPS for GWAS
 
 1. First create gds file from vcf or vcf.gz file.
 
