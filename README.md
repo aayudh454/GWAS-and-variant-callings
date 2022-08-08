@@ -311,12 +311,16 @@ write.table(ordered$Suitability_data, 'HS_score_BimBam.txt', row.names = FALSE, 
 
 gemma: https://github.com/genetics-statistics/gemma-wrapper/blob/master/README.md 
 
+Install gemma
 ```
 wget https://github.com/genetics-statistics/GEMMA/releases/download/v0.98.5/gemma-0.98.5-linux-static-AMD64.gz
 gzip -d gemma-0.98.5-linux-static-AMD64.gz 
 mv gemma-0.98.5-linux-static-AMD64 gemma-0.98.5-linux-static
 chmod 700 gemma-0.98.5-linux-static
+```
+*Run gemma*
 
+```
 ./gemma-0.98.5-linux-static -g mySNPbed.bed -k ibs_matrix.txt -lmm 4 -miss 0.1 -p HS_score_BimBam.txt -o trait_1_out
 ```
 
