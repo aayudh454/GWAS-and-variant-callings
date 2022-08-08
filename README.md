@@ -203,7 +203,7 @@ snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
 
 **2. Create the id matching files with trait value** 
 
-We are using accessions from Lasky et al (2015).
+We are using accessions from Lasky et al (2015). NOTE: You need to match the genofile$sample.id format with the metadata column.
 
 ```
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
