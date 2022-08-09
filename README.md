@@ -387,7 +387,7 @@ head(gemma_output.clean)
 write.table(gemma_output.clean, 'Reseq_gwas_HS_score.clean.txt', row.names = FALSE, quote = FALSE, col.names = TRUE, sep = '\t')
 ```
 
-**5. Making manhattan plot** 
+**6. Making manhattan plot** 
 
 ```
 #!/usr/bin/env Rscript
