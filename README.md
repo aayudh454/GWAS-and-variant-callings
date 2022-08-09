@@ -609,7 +609,7 @@ dev.off()
 
 
 
-**Intalling vcftools**
+**Installing vcftools**
 
 ```
 cd ~/work
