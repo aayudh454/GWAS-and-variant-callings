@@ -602,6 +602,60 @@ dev.off()
 
 ```
 
+**7. FDR corrections** 
+
+Same script can be run for p_lrt and p_score.
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+setwd("~/work/gwas_reseq/fdr_corrections")
+
+glm_stats <- read.table("Reseq_gwas_HS_score.clean.txt", header = T, sep = "\t")
+head(glm_stats)
+
+library(dplyr)
+
+# Calculate Bonferroni Correction and False Discovery Rate 
+
+adj_glm <- glm_stats %>%
+  transmute(rs, chr, ps, p_wald,
+            p_Bonferroni =  p.adjust(glm_stats$p_wald,"bonferroni"),
+            p_FDR = p.adjust(glm_stats$p_wald,"fdr")
+  )
+
+head(adj_glm)
+
+write.csv(adj_glm, file="Reseq_gwas_HS_score_adj_p_GLM.csv", quote = T, eol = "\n", na= "NA")
+
+library(qqman)
+
+adj_glm_KRN_4 <- read.csv("Reseq_gwas_HS_score_adj_p_GLM.csv", header = T)
+head(adj_glm_KRN_4)
+
+tiff("Reseq_gwas_HS_score_FDR.tiff", width = 11, height = 7, units = 'in', res = 300)
+par(mfrow=c(1,3))
+qq(adj_glm_KRN_4$p_wald, main = "non-adjusted P-value")
+qq(adj_glm_KRN_4$p_Bonferroni, main = "Bonferroni")
+qq(adj_glm_KRN_4$p_FDR, main = "FDR")
+par(mfrow=c(1,1))
+dev.off()
+
+png(file = 'Reseq_gwas_HS_score_FDR.png', width=1400, height=960, res=300)
+par(mfrow=c(1,3))
+qq(adj_glm_KRN_4$p_wald, main = "non-adjusted P-value")
+qq(adj_glm_KRN_4$p_Bonferroni, main = "Bonferroni")
+qq(adj_glm_KRN_4$p_FDR, main = "FDR")
+par(mfrow=c(1,1))
+dev.off()
+```
 
 <div id='id-section5'/>
 
