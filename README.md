@@ -657,6 +657,39 @@ par(mfrow=c(1,1))
 dev.off()
 ```
 
+**8. Finding top SNPs**
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
+list.files()
+
+gemma_output.clean <- read.table('Reseq_gwas_HS_score.clean.txt',header=TRUE,sep='\t',colClasses=c("character"))
+head(gemma_output.clean)
+
+
+top_SNPs <- gemma_output.clean[with(gemma_output.clean,order(p_wald)),]
+head(top_SNPs)
+
+Reseq_topSNPS <- top_SNPs[1:1000,]
+head(Reseq_topSNPS)
+#write.csv(Reseq_topSNPS, file="Reseq_topSNPS.csv", quote = T, eol = "\n", na= "NA")
+
+Reseq_topSNPS_Chr5 <- Reseq_topSNPS[Reseq_topSNPS$chr == '5',]
+head(Reseq_topSNPS_Chr5)
+#write.csv(Reseq_topSNPS_Chr5, file="Reseq_topSNPS_Chr5.csv", quote = T, eol = "\n", na= "NA")
+range(Reseq_topSNPS_Chr5$ps)
+
+
+Reseq_top100SNPS <- top_SNPs[1:100,]
+head(Reseq_top100SNPS)
+
+Reseq_top100SNPS_Chr5 <- Reseq_top100SNPS[Reseq_top100SNPS$chr == '5',]
+head(Reseq_top100SNPS_Chr5)
+range(Reseq_top100SNPS_Chr5$ps)
+
+#write.csv(Reseq_top100SNPS_Chr5, file="Reseq_top100SNPS_Chr5.csv", quote = T, eol = "\n", na= "NA")
+```
+
 <div id='id-section5'/>
 
 ## Chapter 5: GWAS using vcftools
