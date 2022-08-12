@@ -9,7 +9,7 @@
 
 * [Page 4 2020-12-07](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
-* [Page 5 2020-12-08](#id-section5). Chapter 5: GWAS using vcftools
+* [Page 5 2020-12-08](#id-section5). Chapter 5: vcftools related functions 
 
 * [Page 6 2020-12-08](#id-section6). Chapeter 6: 
 
@@ -689,6 +689,92 @@ range(Reseq_top100SNPS_Chr5$ps)
 
 #write.csv(Reseq_top100SNPS_Chr5, file="Reseq_top100SNPS_Chr5.csv", quote = T, eol = "\n", na= "NA")
 ```
+
+**9. Annotating top SNPs**
+
+First find gff file with annotations from phytazome. For reseq data we used Sbicolor_454_v3.1.1.gene_exons.gff3 and Sbicolor_454_v3.1.1.annotation_info files https://data.jgi.doe.gov/refine-download/phytozome?organism=Sbicolor&expanded=454 
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS/Annotation")
+list.files()
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(dplyr)
+library(fuzzyjoin)
+
+Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene_exons.gff3", header=T, comment.char="#") 
+
+names(Sorghum_annot)[9]<-paste("Gene_name")
+names(Sorghum_annot)[4]<-paste("start")
+names(Sorghum_annot)[5]<-paste("stop")
+names(Sorghum_annot)[7]<-paste("direction")
+names(Sorghum_annot)[1]<-paste("chr")
+Sorghum_annot = within(Sorghum_annot, rm(.,..1,phytozomev12))
+head(Sorghum_annot)
+
+#adding these 2 colums to the dataframe will give you the +/- 2.5 kb window
+Sorghum_annot$start_2.5kb <- Sorghum_annot$start - 2500
+Sorghum_annot$stop_2.5kb <- Sorghum_annot$stop + 2500
+head(Sorghum_annot)
+
+top1000SNPs <- read.csv("Reseq_topSNPS.csv", header=T)
+top1000SNPs = within(top1000SNPs, rm(n_miss,allele1,allele0,af, beta,se,logl_H1,l_remle,l_mle,p_lrt,p_score))
+head(top1000SNPs)
+
+gwas_annot <- top1000SNPs$found <- ifelse(sapply(top1000SNPs$ps, function(p) 
+  any(Sorghum_annot$start_2.5kb <= p & Sorghum_annot$stop_2.5kb >= p)),paste(Sorghum_annot$Gene_name), NA)
+
+names(top1000SNPs)[5]<-paste("Gene_name")
+head(top1000SNPs)
+
+top1000SNPs_1 <- gsub("\\.v3.*","",top1000SNPs$Gene_name) 
+transcriptName <- sub('ID=', '', top1000SNPs_1)
+
+top1000SNPs_transcriptName <- cbind(top1000SNPs,transcriptName)
+head(top1000SNPs_transcriptName)
+
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+annotation_full <- merge(Sorghum_mdata,top1000SNPs_transcriptName, by = "transcriptName")
+dim(annotation_full)
+
+
+###based on locusName
+locusName <- sub('ID=', '', top1000SNPs_1)
+
+Sorghum_annot_locus <- cbind(top1000SNPs,locusName)
+head(Sorghum_annot_locus)
+dim(Sorghum_annot_locus)
+
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+annotation_Loc <- merge(Sorghum_mdata,Sorghum_annot_locus, by = "locusName")
+dim(annotation_Loc)
+
+
+final_data <- rbind(annotation_full,annotation_Loc)
+dim(final_data)
+head(final_data)
+final_data = within(final_data, rm(Gene_name))
+final_data = within(final_data, rm(rice.symbol))
+head(final_data)
+
+library(data.table)
+MASTER_data_final <- unique(setDT(final_data)[order(ps, -ps)], by = "ps")
+dim(MASTER_data_final)
+head(MASTER_data_final)
+
+MASTER_data_final <- MASTER_data_final[order(MASTER_data_final$p_wald),]
+
+
+write.table(MASTER_data_final, "2.top1000_annotation.csv", sep=",")
+
+```
+
+
 
 <div id='id-section5'/>
 
