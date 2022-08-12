@@ -602,6 +602,70 @@ dev.off()
 
 ```
 
+**Making manhattan using ggplot2**
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS/manhattan")
+list.files()
+
+library(tidyverse)
+library(ggtext)
+library(normentR)
+
+gwas_data_load <- read.csv("Reseq_gwas_HS_score_adj_p_GLM.csv", header=T)
+head(gwas_data_load)
+
+sig_data <- gwas_data_load %>% 
+  subset(p_wald < 0.05)
+notsig_data <- gwas_data_load %>% 
+  subset(p_wald >= 0.05) %>%
+  group_by(chr) %>% 
+  sample_frac(0.1)
+gwas_data <- bind_rows(sig_data, notsig_data)
+
+data_cum <- gwas_data %>% 
+  group_by(chr) %>% 
+  summarise(max_bp = max(ps)) %>% 
+  mutate(bp_add = lag(cumsum(max_bp), default = 0)) %>% 
+  select(chr, bp_add)
+
+gwas_data <- gwas_data %>% 
+  inner_join(data_cum, by = "chr") %>% 
+  mutate(bp_cum = ps + bp_add)
+
+axis_set <- gwas_data %>% 
+  group_by(chr) %>% 
+  summarize(center = mean(bp_cum))
+
+ylim <- gwas_data %>% 
+  filter(p_wald == min(p_wald)) %>% 
+  mutate(ylim = abs(floor(log10(p_wald))) + 2) %>% 
+  pull(ylim)
+
+sig <- 5e-8
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS/manhattan")
+tiff("Reseq_gwas_HS_score_ggplot.tiff", width = 11, height = 7, units = 'in', res = 300)
+ggplot(gwas_data, aes(x = bp_cum, y = -log10(p_wald), 
+                                  color = as_factor(chr), size = -log10(p_wald))) +
+  geom_hline(yintercept = -log10(sig), color = "grey40", linetype = "dashed") + 
+  geom_point(alpha = 0.75) +
+  scale_x_continuous(label = axis_set$chr, breaks = axis_set$center) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
+  scale_color_manual(values = rep(c("#276FBF", "#183059"), unique(length(axis_set$chr)))) +
+  scale_size_continuous(range = c(0.5,3)) +
+  labs(x = NULL, 
+       y = "-log<sub>10</sub>(p)") + 
+  theme_minimal() +
+  theme( 
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.y = element_markdown(),
+    axis.text.x = element_text(angle = 60, size = 8, vjust = 0.5))
+dev.off()
+```
+
 **7. FDR corrections** 
 
 Same script can be run for p_lrt and p_score.
