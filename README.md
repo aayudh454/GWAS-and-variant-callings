@@ -767,8 +767,8 @@ library(normentR)
 library(dplyr)
 library(fuzzyjoin)
 
-Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene_exons.gff3", header=T, comment.char="#") 
-
+Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene.gff3", header=T, comment.char="#") 
+head(Sorghum_annot)
 names(Sorghum_annot)[9]<-paste("Gene_name")
 names(Sorghum_annot)[4]<-paste("start")
 names(Sorghum_annot)[5]<-paste("stop")
@@ -777,67 +777,76 @@ names(Sorghum_annot)[1]<-paste("chr")
 Sorghum_annot = within(Sorghum_annot, rm(.,..1,phytozomev12))
 head(Sorghum_annot)
 
-#adding these 2 colums to the dataframe will give you the +/- 2.5 kb window
-Sorghum_annot$start_2.5kb <- Sorghum_annot$start - 2500
-Sorghum_annot$stop_2.5kb <- Sorghum_annot$stop + 2500
+chr_new = substring(Sorghum_annot$chr, 4)
+#replace column
+Sorghum_annot[, "chr"] <- chr_new
 head(Sorghum_annot)
+dim(Sorghum_annot)
 
-top1000SNPs <- read.csv("Reseq_topSNPS.csv", header=T)
-top1000SNPs = within(top1000SNPs, rm(n_miss,allele1,allele0,af, beta,se,logl_H1,l_remle,l_mle,p_lrt,p_score))
-head(top1000SNPs)
+#Sorghum_annot[389067,1]
+#Sorghum_annot[389068,1]
 
-gwas_annot <- top1000SNPs$found <- ifelse(sapply(top1000SNPs$ps, function(p) 
-  any(Sorghum_annot$start_2.5kb <= p & Sorghum_annot$stop_2.5kb >= p)),paste(Sorghum_annot$Gene_name), NA)
+chr10_Sorghum_annot <- Sorghum_annot[Sorghum_annot$chr == '10',]
+dim(chr10_Sorghum_annot)
+chr1_9_Sorghum_annot <- Sorghum_annot[1:389067,]
+chr1_9_Sorghum_annot_1 = substring(chr1_9_Sorghum_annot$chr, 2)
+head(chr1_9_Sorghum_annot_1)
 
-names(top1000SNPs)[5]<-paste("Gene_name")
-head(top1000SNPs)
-
-top1000SNPs_1 <- gsub("\\.v3.*","",top1000SNPs$Gene_name) 
-transcriptName <- sub('ID=', '', top1000SNPs_1)
-
-top1000SNPs_transcriptName <- cbind(top1000SNPs,transcriptName)
-head(top1000SNPs_transcriptName)
-
-Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
-head(Sorghum_mdata)
-
-annotation_full <- merge(Sorghum_mdata,top1000SNPs_transcriptName, by = "transcriptName")
-dim(annotation_full)
+chr1_9_Sorghum_annot[, "chr"] <- chr1_9_Sorghum_annot_1
+head(chr1_9_Sorghum_annot)
+dim(chr1_9_Sorghum_annot)
 
 
-###based on locusName
-locusName <- sub('ID=', '', top1000SNPs_1)
 
-Sorghum_annot_locus <- cbind(top1000SNPs,locusName)
-head(Sorghum_annot_locus)
-dim(Sorghum_annot_locus)
+Sbicolor_annot <- rbind(chr1_9_Sorghum_annot,chr10_Sorghum_annot)
+head(Sbicolor_annot)
+dim(Sbicolor_annot)
 
-Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
-head(Sorghum_mdata)
-
-annotation_Loc <- merge(Sorghum_mdata,Sorghum_annot_locus, by = "locusName")
-dim(annotation_Loc)
+#adding these 2 colums to the dataframe will give you the +/- 2.5 kb window
+Sbicolor_annot$start_2.5kb <- Sbicolor_annot$start - 2500
+Sbicolor_annot$stop_2.5kb <- Sbicolor_annot$stop + 2500
+head(Sbicolor_annot)
 
 
-final_data <- rbind(annotation_full,annotation_Loc)
-dim(final_data)
-head(final_data)
-final_data = within(final_data, rm(Gene_name))
-final_data = within(final_data, rm(rice.symbol))
-head(final_data)
+
+top100SNPs <- read.csv("Reseq_top100_SNPS.csv", header=T)
+top100SNPs = within(top100SNPs, rm(n_miss,allele1,allele0,af, beta,se,logl_H1,l_remle,l_mle,p_lrt,p_score))
+head(top100SNPs)
+
+top_10 <- top100SNPs[1:10,]
+
+library(dplyr)
+library(fuzzyjoin)
+gwas_annot <- fuzzy_left_join(top_10, Sbicolor_annot, by=c("ps"="start_2.5kb", "ps"="stop_2.5kb", "chr"="chr"), 
+                            match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,p_wald,start, stop)
+
+
+gwas_annot_split <- data.frame(do.call("rbind", strsplit(as.character(gwas_annot$Gene_name), ";", fixed = TRUE)))
+pacId <- sub('pacid=', '', gwas_annot_split$X3)
+head(gwas_annot_split)
+
+gwas_annot_1 <- cbind (pacId,gwas_annot)
+gwas_annot_1 = within(gwas_annot_1, rm(Gene_name))
+head(gwas_annot_1)
+gwas_annot_2 <- gwas_annot_1[- grep("ancestorIdentifier", gwas_annot_1$pacId),]
+head(gwas_annot_2)
 
 library(data.table)
-MASTER_data_final <- unique(setDT(final_data)[order(ps, -ps)], by = "ps")
-dim(MASTER_data_final)
-head(MASTER_data_final)
+gwas_annot_3 <- unique(setDT(gwas_annot_2)[order(ps, -ps)], by = "ps")
+dim(gwas_annot_3)
+head(gwas_annot_3)
 
-MASTER_data_final <- MASTER_data_final[order(MASTER_data_final$p_wald),]
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot_3, by = "pacId")
+dim(annotation_Loc)
+head(annotation_Loc)
 
 
-write.table(MASTER_data_final, "2.top1000_annotation.csv", sep=",")
+write.table(annotation_Loc, "2.top1000_annotation.csv", sep=",")
 
 ```
-
 
 
 <div id='id-section5'/>
