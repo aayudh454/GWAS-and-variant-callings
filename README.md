@@ -345,36 +345,37 @@ cd $WORKINGDIR
 
 ./gemma-0.98.5-linux-static -g mySNPbed.bed -k ibs_matrix.txt -lmm 4 -miss 0.1 -p HS_score_BimBam.txt -o Reseq_gwas_HS_score_out
 ```
+**preds.all**
 
-**number of total individuals = 183**
+**number of total individuals = 339**
 
 number of analyzed individuals = 183
 number of covariates = 1
 number of phenotypes = 1
 
-**number of total SNPs/var        =  7446433**
+**number of total SNPs/var        =  7750426**
 
-**number of analyzed SNPs         =  7446389**
+**number of analyzed SNPs         =  7750411**
 
 Start Eigen-Decomposition...
 pve estimate =0.902493
 se(pve) =0.109123
 
-REMLE log-likelihood in the null model = 67.5743
+REMLE log-likelihood in the null model = 98.4581
 
-MLE log-likelihood in the null model = 72.7098
+MLE log-likelihood in the null model = 99.5659
 
-pve estimate in the null model = 0.902493
+pve estimate in the null model = 0.58953
 
-se(pve) in the null model = 0.109123
+se(pve) in the null model =  0.103705
 
-vg estimate in the null model = 0.146957
+vg estimate in the null model = 0.0933044
 
-ve estimate in the null model = 0.00438676
+ve estimate in the null model = 0.0175318
 
-beta estimate in the null model =   0.276618
+beta estimate in the null model =   0.270463
 
-se(beta) =   0.00489606
+se(beta) =   0.00719141
 
 
 **5. Clean gemma txt file** 
