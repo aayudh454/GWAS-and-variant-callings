@@ -396,7 +396,7 @@ chr <- sub('_.*$','',tmp)
 ps <- sub('._', '', tmp)
 gemma_output.clean <- cbind(chr,rs,ps,gemma_output[,c(4:15)])
 head(gemma_output.clean)
-write.table(gemma_output.clean, 'Reseq_gwas_HS_score.clean.txt', row.names = FALSE, quote = FALSE, col.names = TRUE, sep = '\t')
+write.table(gemma_output.clean, 'Reseq_preds_all_HS_score_out.assoc.clean.txt', row.names = FALSE, quote = FALSE, col.names = TRUE, sep = '\t')
 ```
 
 **6. Making manhattan plot** 
@@ -692,9 +692,9 @@ Same script can be run for p_lrt and p_score.
 #PBS -A open
 #PBS -j oe
 
-setwd("~/work/gwas_reseq/fdr_corrections")
+setwd("~/work/preds_all_gwas/output")
 
-glm_stats <- read.table("Reseq_gwas_HS_score.clean.txt", header = T, sep = "\t")
+glm_stats <- read.table("Reseq_preds_all_HS_score_out.assoc.clean.txt", header = T, sep = "\t")
 head(glm_stats)
 
 library(dplyr)
@@ -709,14 +709,16 @@ adj_glm <- glm_stats %>%
 
 head(adj_glm)
 
-write.csv(adj_glm, file="Reseq_gwas_HS_score_adj_p_GLM.csv", quote = T, eol = "\n", na= "NA")
+setwd("~/work/preds_all_gwas/fdr_correction")
+
+write.csv(adj_glm, file="Reseq_preds_all_HS_score_adj_p_GLM.csv", quote = T, eol = "\n", na= "NA")
 
 library(qqman)
 
-adj_glm_KRN_4 <- read.csv("Reseq_gwas_HS_score_adj_p_GLM.csv", header = T)
+adj_glm_KRN_4 <- read.csv("Reseq_preds_all_HS_score_adj_p_GLM.csv", header = T)
 head(adj_glm_KRN_4)
 
-tiff("Reseq_gwas_HS_score_FDR.tiff", width = 11, height = 7, units = 'in', res = 300)
+tiff("Reseq_preds_all_HS_score_FDR.tiff", width = 11, height = 7, units = 'in', res = 300)
 par(mfrow=c(1,3))
 qq(adj_glm_KRN_4$p_wald, main = "non-adjusted P-value")
 qq(adj_glm_KRN_4$p_Bonferroni, main = "Bonferroni")
@@ -724,7 +726,7 @@ qq(adj_glm_KRN_4$p_FDR, main = "FDR")
 par(mfrow=c(1,1))
 dev.off()
 
-png(file = 'Reseq_gwas_HS_score_FDR.png', width=1400, height=960, res=300)
+png(file = 'Reseq_preds_all_HS_score_FDR.png', width=1400, height=960, res=300)
 par(mfrow=c(1,3))
 qq(adj_glm_KRN_4$p_wald, main = "non-adjusted P-value")
 qq(adj_glm_KRN_4$p_Bonferroni, main = "Bonferroni")
