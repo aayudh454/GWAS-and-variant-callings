@@ -307,6 +307,16 @@ ordered <- traits[order.idx,]
 write.table(ordered$Suitability_data, 'HS_score_BimBam.txt', row.names = FALSE, quote = FALSE, col.names = FALSE)
 ```
 
+Excluding 3,238,815 SNPs on non-autosomes
+Excluding 53,629,157 SNPs (monomorphic: TRUE, MAF: 0.05, missing rate: 0)
+Genotype matrix: 339 samples X 7750426 SNPs
+Identity-By-State (IBS) analysis on genotypes:
+Excluding 56,867,972 SNPs (non-autosomes or non-selection)
+Excluding 0 SNP (monomorphic: TRUE, MAF: 0.05, missing rate: 0)
+Working space: 339 samples, 7,750,426 SNPs
+IBS:    the sum of all selected genotypes (0,1,2) = 3811307892
+
+
 **4. Running gemma** 
 
 gemma: https://github.com/genetics-statistics/gemma-wrapper/blob/master/README.md 
