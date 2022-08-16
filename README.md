@@ -738,34 +738,30 @@ dev.off()
 **8. Finding top SNPs**
 
 ```
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/manhattan plot")
 list.files()
 
-gemma_output.clean <- read.table('Reseq_gwas_HS_score.clean.txt',header=TRUE,sep='\t',colClasses=c("character"))
-head(gemma_output.clean)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(ggplot2)
+
+Reseq_preds.all <- read.csv("1. Reseq_preds_all_chr10_corrected.csv", header=T)
+head(Reseq_preds.all)
 
 
-top_SNPs <- gemma_output.clean[with(gemma_output.clean,order(p_wald)),]
+top_SNPs <- Reseq_preds.all[with(Reseq_preds.all,order(p_wald)),]
 head(top_SNPs)
 
 Reseq_topSNPS <- top_SNPs[1:1000,]
 head(Reseq_topSNPS)
-#write.csv(Reseq_topSNPS, file="Reseq_topSNPS.csv", quote = T, eol = "\n", na= "NA")
-
-Reseq_topSNPS_Chr5 <- Reseq_topSNPS[Reseq_topSNPS$chr == '5',]
-head(Reseq_topSNPS_Chr5)
-#write.csv(Reseq_topSNPS_Chr5, file="Reseq_topSNPS_Chr5.csv", quote = T, eol = "\n", na= "NA")
-range(Reseq_topSNPS_Chr5$ps)
-
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/TOP SNPs")
+write.csv(Reseq_topSNPS, file="Reseq_preds_all_top1000SNPS.csv", quote = T, eol = "\n", na= "NA")
 
 Reseq_top100SNPS <- top_SNPs[1:100,]
 head(Reseq_top100SNPS)
 
-Reseq_top100SNPS_Chr5 <- Reseq_top100SNPS[Reseq_top100SNPS$chr == '5',]
-head(Reseq_top100SNPS_Chr5)
-range(Reseq_top100SNPS_Chr5$ps)
-
-#write.csv(Reseq_top100SNPS_Chr5, file="Reseq_top100SNPS_Chr5.csv", quote = T, eol = "\n", na= "NA")
+write.csv(Reseq_top100SNPS, file="Reseq_preds_all_top100SNPS.csv", quote = T, eol = "\n", na= "NA")
 ```
 
 **9. Annotating top SNPs**
@@ -773,10 +769,21 @@ range(Reseq_top100SNPS_Chr5$ps)
 First find gff file with annotations from phytazome. For reseq data we used Sbicolor_454_v3.1.1.gene_exons.gff3 and Sbicolor_454_v3.1.1.annotation_info files https://data.jgi.doe.gov/refine-download/phytozome?organism=Sbicolor&expanded=454 
 
 ```
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS/Annotation")
-list.files()
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+setwd("~/work/preds_all_gwas/annotation")
+
+#setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+#list.files()
 library(tidyverse)
-library(ggtext)
+#library(ggtext)
 library(normentR)
 library(dplyr)
 library(fuzzyjoin)
@@ -822,16 +829,15 @@ Sbicolor_annot$stop_2.5kb <- Sbicolor_annot$stop + 2500
 head(Sbicolor_annot)
 
 
+#setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+#list.files()
+top1000SNPs <- read.csv("Reseq_preds_all_top1000SNPS.csv", header=T)
+head(top1000SNPs)
 
-top100SNPs <- read.csv("Reseq_top100_SNPS.csv", header=T)
-top100SNPs = within(top100SNPs, rm(n_miss,allele1,allele0,af, beta,se,logl_H1,l_remle,l_mle,p_lrt,p_score))
-head(top100SNPs)
-
-top_10 <- top100SNPs[1:10,]
 
 library(dplyr)
 library(fuzzyjoin)
-gwas_annot <- fuzzy_left_join(top_10, Sbicolor_annot, by=c("ps"="start_2.5kb", "ps"="stop_2.5kb", "chr"="chr"), 
+gwas_annot <- fuzzy_left_join(top1000SNPs, Sbicolor_annot, by=c("ps"="start_2.5kb", "ps"="stop_2.5kb", "chr"="chr"), 
                             match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,p_wald,start, stop)
 
 
@@ -845,20 +851,28 @@ head(gwas_annot_1)
 gwas_annot_2 <- gwas_annot_1[- grep("ancestorIdentifier", gwas_annot_1$pacId),]
 head(gwas_annot_2)
 
+gwas_annot_3 <- gwas_annot_2[- grep("ID=Sobic", gwas_annot_2$pacId),]
+head(gwas_annot_3)
+
 library(data.table)
 gwas_annot_3 <- unique(setDT(gwas_annot_2)[order(ps, -ps)], by = "ps")
 dim(gwas_annot_3)
 head(gwas_annot_3)
 
+library(tidyr)
+gwas_annot_4 <- gwas_annot_3 %>% drop_na()
+dim(gwas_annot_4)
+head(gwas_annot_4)
+
+
 Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
 head(Sorghum_mdata)
 
-annotation_Loc <- merge(Sorghum_mdata,gwas_annot_3, by = "pacId")
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot_4, by = "pacId")
 dim(annotation_Loc)
 head(annotation_Loc)
 
-
-write.table(annotation_Loc, "2.top1000_annotation.csv", sep=",")
+write.table(annotation_Loc, "Annotation_reseq_preds_all.csv", sep=",")
 
 ```
 
