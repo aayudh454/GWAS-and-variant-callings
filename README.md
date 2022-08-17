@@ -349,7 +349,7 @@ cd $WORKINGDIR
 
 **number of total individuals = 339**
 
-number of analyzed individuals = 183
+number of analyzed individuals = 339
 number of covariates = 1
 number of phenotypes = 1
 
