@@ -457,8 +457,6 @@ dev.off()
 ```
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/fdr%20correction.png)
 
-
-
 **7. Making manhattan plot** 
 
 ```
@@ -522,6 +520,7 @@ ggplot(gwas_data, aes(x = bp_cum, y = -log10(p_wald),
     axis.text.x = element_text(angle = 60, size = 8, vjust = 0.5))
 dev.off()
 ```
+![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/fdr%20correction.png)
 
 **8. Finding top SNPs**
 
