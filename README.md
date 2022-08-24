@@ -794,6 +794,52 @@ ggplot() +
   labs(x = NULL, y = NULL) 
 dev.off()
 ```
+**Density plot**
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/map SNPs")
+list.files()
+SNP_45529877 <- read.csv("SNP_45529877.csv")
+head(SNP_45529877)
+
+metadata <- read.csv("1. ReseqGWAS_traits_revissed_predsALL.csv")
+head(metadata)
+
+SNP_45529877_full<- merge(SNP_45529877,metadata, by="LIB")
+
+SNP_45529877_full$ref_alt <- ifelse(SNP_45529877_full$rs_10_45529877_G.A=="2",'REF','ALT')
+head(SNP_45529877_full)
+
+
+library(raster)
+library(rgdal)
+library(classInt)
+library(RColorBrewer)
+
+##Here, lgs1 is a table, with the suitability variable ‘enm’ and the lgs1 alleles in ‘V4’. 
+##I’m collapsing the two different deletion alleles into the purple bars.
+### make allele freq plot ####
+delz <- hist(SNP_45529877_full$HS_score[SNP_45529877_full$ref_alt %in% 'ALT'], breaks = seq(0, 1, by = 0.05), plot = F)$counts 
+intz <- hist(SNP_45529877_full$HS_score[!SNP_45529877_full$ref_alt %in% 'ALT'], breaks = seq(0, 1, by = 0.05), plot = F)$counts 
+sez <- sqrt(((delz / colSums(rbind(delz, intz))) * (intz / colSums(rbind(delz, intz)))) / colSums(rbind(delz, intz)))
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/allele_freq")
+tiff("SNP_45529877.tiff", width = 6, height = 6, units = 'in', res = 300)
+plot(seq(0, 0.95, by = 0.05) + 0.025, delz / colSums(rbind(delz, intz)))
+plot.new()
+plot.window(xlim = c(0, 0.9), ylim = c(0, 1))
+for(i in 1:length(delz)){
+  polygon(seq(0, 1, by = 0.05)[c(i,i+1, i+1, i)], c(0, 0, rep(intz[i]/(intz[i] + delz[i]), 2)), col = gray(0.7))
+  polygon(seq(0, 1, by = 0.05)[c(i,i+1, i+1, i)], c(1, 1, rep(intz[i]/(intz[i] + delz[i]), 2)), col = brewer.pal(4, 'Set1')[4])
+  lines(seq(0, 1, by = 0.05)[rep(i,2)] + 0.025, rep(intz[i]/(intz[i] + delz[i]), 2) + c(-sez[i], sez[i]))
+  text(seq(0, 1, by = 0.05)[i] + 0.025, 0.05, colSums(rbind(delz, intz))[i], cex =0.7)
+}
+#standard error is sqrt(pq/n)
+axis(1)
+axis(2)
+title(xlab = 'Striga habitat suitability')
+title(ylab = 'Allele frequency')
+dev.off()
+```
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/Mapping%20SNPs.png)
 
 <div id='id-section6'/>
