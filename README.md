@@ -455,6 +455,9 @@ qq(adj_glm_KRN_4$p_FDR, main = "FDR")
 par(mfrow=c(1,1))
 dev.off()
 ```
+![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/fdr%20correction.png)
+
+
 
 **7. Making manhattan plot** 
 
