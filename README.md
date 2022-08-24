@@ -1039,6 +1039,7 @@ dev.off()
 | rs_4_49813787;C/T  | 0.600259327  |
 | rs_4_49813804;T/G  | 0.752821624  |
 
+*cor=Pearson correlation coefficient*
 
 <div id='id-section7'/>
 
