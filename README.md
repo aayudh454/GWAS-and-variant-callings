@@ -680,13 +680,121 @@ write.table(annotation_Loc_1, "1. Annotation_reseq_top100_preds_all.csv", sep=",
 
 ```
 
-
-
 <div id='id-section5'/>
 
 ## Chapter 5: Mapping SNPs and finding SNPs nearby
 
+Based on your top hit based on annotation you can map this top SNPs
 
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+setwd("/gpfs/group/jrl35/default/aayudh/gwas_reseq")
+
+library(gdsfmt)
+library(SNPRelate)
+
+genofile <- snpgdsOpen('Sorghum_1757g_2ndtry.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+snp.id <- read.gdsn(index.gdsn(genofile, 'snp.id'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.allele <- read.gdsn(index.gdsn(genofile, 'snp.allele'))
+snp.rs.id <- read.gdsn(index.gdsn(genofile, 'snp.rs.id'))
+
+#you can use your traits file to get SNPs only for genotypes with phenotypic data
+#the trait file should have a column 'sample.id' that corresponds to the id in the genofile
+setwd("~/work/preds_all_gwas")
+traits <- data.frame(read.csv('1_ReseqGWAS_traits_revissed_predsALL.csv', header=TRUE))
+head(traits)
+
+#no need to account for LD when getting SNPs for GWAS. 
+mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0)
+length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+#these lines create the bed file for gemma
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs], allele = snp.allele[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions, ';', rs$allele), t(mySNPmatrix$genotype)) 
+dim(SNPs_bim)
+length(SNPs_bim)
+SNPs_bim[1,1]
+
+data_2 <- SNPs_bim[,2:340]
+colnames(data_2) <- mySNPmatrix$sample.id
+data_3 <- cbind(SNPs_bim[,1],data_2)
+head(data_3)
+dim(data_3)
+data_3[1,1]
+names(data_3)[1]<-paste("SNPs")
+
+data_4 <- data.frame(do.call("rbind", strsplit(as.character(data_3$SNPs), ";", fixed = TRUE)))
+
+data_5 <- cbind (data_4,data_3)
+names(data_5)[1]<-paste("position")
+names(data_5)[2]<-paste("allele")
+data_5 = within(data_5, rm(SNPs))
+
+
+data_49813813 <- subset(data_5, position=="rs_04_49813813")
+data_new <- data_49813813[ , colSums(is.na(data_49813813)) < nrow(data_49813813)] 
+data_snp_49813813 <- t(data_new)
+
+SNP_49813813 <- as.data.frame(data_snp_49813813)
+setwd("~/work/preds_all_gwas/map_snps")
+write.table(SNP_49813813, "SNP_rs_04_49813813.csv", sep=",")
+```
+Now next part is in your R
+
+```
+#-------------------ggplot-part---------------------------------
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/map SNPs")
+list.files()
+SNP_49813813 <- read.csv("SNP_rs_04_49813813.csv")
+head(SNP_49813813)
+
+metadata <- read.csv("1. ReseqGWAS_traits_revissed_predsALL.csv")
+head(metadata)
+
+SNP_49813813_full<- merge(SNP_49813813,metadata, by="LIB")
+
+SNP_49813813_full$ref_alt <- ifelse(SNP_49813813_full$rs_04_49813813_C.G=="2",'REF','ALT')
+head(SNP_49813813_full)
+
+##MAP
+library(tidyverse)
+library(sf)
+library(mapview)
+library(ggplot2)
+
+SNP_49813813_full %>% 
+  select(Accession, Lon, 
+         Lat,ref_alt,population) %>%
+  head()
+
+world <- map_data("world")
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/map SNPs")
+tiff("SNP_49813813.tiff", width = 6, height = 6, units = 'in', res = 300)
+ggplot() + 
+  geom_map(data = world, map = world,aes(long, lat, map_id = region),
+           color = "black", fill = "white", size = 0.1) +
+  geom_point(data = SNP_49813813_full,aes(Lon, Lat, color = ref_alt),alpha = 1) +
+  coord_sf(xlim = c(-20, 50), ylim = c(-35, 35), expand = FALSE)+
+  scale_color_manual(values=c('red', '#56B4E9'))+
+  labs(x = NULL, y = NULL) 
+dev.off()
+```
+![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/Mapping%20SNPs.png)
 
 <div id='id-section6'/>
 
