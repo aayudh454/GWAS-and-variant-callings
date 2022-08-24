@@ -9,11 +9,11 @@
 
 * [Page 4 2020-12-07](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
-* [Page 5 2020-12-08](#id-section5). Chapter 5: Mapping SNPs and finding SNPs nearby
+* [Page 5 2020-12-08](#id-section5). Chapter 5: Mapping SNPs and finding SNPs nearby (by Aayudh)
 
-* [Page 6 2020-12-08](#id-section6). Chapeter 6: Vcftools related functions 
+* [Page 6 2020-12-08](#id-section6). Chapeter 6: Finding nearby SNPs 
 
-* [Page 7 2020-12-14](#id-section7). Chapeter 7: 
+* [Page 7 2020-12-14](#id-section7). Chapeter 7: Vcftools related functions 
 
 * [Page 8 2020-12-16](#id-section8). Chapeter 8: 
 
@@ -844,7 +844,130 @@ dev.off()
 
 <div id='id-section6'/>
 
-## Chapter 6: GWAS using vcftools
+## Chapter 6: Finding nearby SNPs
+
+Creating a vector of correlation coefficients for gwas resequencing snp vs everything else nearby snps in gbs set. We are looking to see if the resequencing snp is ‘Tagged’ by a gbs snp, so that the gbs snp could be used to infer accessions alleles at the resequencing gwas hit. Moreover, we want to know if your gwas snp is in strong LD with any gbs snp.
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/GBS data processing /Bigdata_cgr5_699")
+library(SNPRelate)
+library(gdsfmt)
+
+genofile <- snpgdsOpen('SNPs_imp.recode.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+snp.id <- read.gdsn(index.gdsn(genofile, 'snp.id'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.allele <- read.gdsn(index.gdsn(genofile, 'snp.allele'))
+snp.rs.id <- read.gdsn(index.gdsn(genofile, 'snp.rs.id'))
+
+
+
+data_sampleID <- as.data.frame(sample.id)
+data_sampleID_1 <- data.frame(do.call("rbind", strsplit(as.character(data_sampleID$sample.id), ".", fixed = TRUE)))
+data_sampleID_1 <- as.data.frame(data_sampleID_1$X1)
+dim(data_sampleID_1)
+names(data_sampleID_1)[1]<-paste("Accession")
+
+gbs_sampleID <-cbind (data_sampleID,data_sampleID_1)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/sample accessions ")
+list.files()
+Reseq_accessions <- read.csv("1. ReseqGWAS_traits_revissed_predsALL.csv", header = T)
+
+Reseq_GBS_accessions<- merge(Reseq_accessions,gbs_sampleID, by="Accession")
+
+
+mySNPs <- snpgdsSelectSNP(genofile, Reseq_GBS_accessions$sample.id, maf = 0.05, missing.rate = 0)
+length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = Reseq_GBS_accessions$sample.id, snp.id = mySNPs, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs], allele = snp.allele[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions, ';', rs$allele), t(mySNPmatrix$genotype)) 
+dim(SNPs_bim)
+length(SNPs_bim)
+SNPs_bim[1,1]
+
+
+data_2 <- SNPs_bim[,2:240]
+
+colnames(data_2) <- mySNPmatrix$sample.id
+
+data_3 <- cbind(SNPs_bim[,1],data_2)
+names(data_3)[1]<-paste("SNPs")
+dim(data_3)
+data_3[1:5,1:5]
+
+data_4 <- data.frame(do.call("rbind", strsplit(as.character(data_3$SNPs), ";", fixed = TRUE)))
+data_5 <- cbind (data_4,data_3)
+data_5[1:5,1:5]
+names(data_5)[2]<-paste("allele")
+data_6 <- data.frame(do.call("rbind", strsplit(as.character(data_5$X1), "_", fixed = TRUE)))
+data_7 <- cbind (data_6,data_5)
+data_7[1:10,1:10]
+names(data_7)[1]<-paste("rs")
+names(data_7)[2]<-paste("chr")
+names(data_7)[3]<-paste("ps")
+
+data_7 = within(data_7, rm(rs,X1))
+data_7[1:10,1:10]
+dim(data_7)
+data_chr4<- subset(data_7, chr=="4") ##DO == "4"
+dim(data_chr4)
+data_chr4[1:10,1:10]
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/compare SNP in gbs")
+write.table(data_chr4, "gbs_chr4_SNPs.csv", sep=",")
+
+library(tidyverse)
+#library(ggtext)
+library(normentR)
+library(dplyr)
+library(fuzzyjoin)
+
+
+new_vector <- as.numeric(as.character(data_chr4$ps))
+#adding these 2 colums to the dataframe will give you the +/- 5 kb window
+start_5kb <- as.data.frame(new_vector-5000)
+stop_5kb <- as.data.frame(new_vector + 5000)
+
+data8 <- cbind(start_5kb,stop_5kb)
+names(data8)[1]<-paste("start_5kb")
+names(data8)[2]<-paste("stop_5kb")
+
+chr4_final <- cbind (data8,data_chr4)
+chr4_final[1:10,1:10]
+
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+list.files()
+top100SNPs <- read.csv("Reseq_preds_all_top100SNPS.csv", header=T)
+head(top100SNPs)
+
+rs_04_49813813 <- top100SNPs[1,]
+names(rs_04_49813813)[3]<-paste("position")
+
+library(dplyr)
+library(fuzzyjoin)
+nerarbySNP <- fuzzy_left_join(rs_04_49813813, chr4_final, by=c("position"="start_5kb", "position"="stop_5kb", "chr"="chr"), 
+                              match_fun=list(`>=`, `<=`, `==`)) %>% select(SNPs,position,allele,ps)
+head(nerarbySNP)
+dim(nerarbySNP)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/compare SNP in gbs")
+write.table(nerarbySNP, "rs_04_49813813_nerarbySNP_accession_match.csv", sep=",")
+```
+
+| SNPs in GBS dataset  | allele |
+| -------------------- | ------------- |
+| rs_4_49813787;C/T  | C/T  |
+| rs_4_49813804;T/G  | T/G  |
+
+<div id='id-section7'/>
+
+## Chapter 7: GWAS using vcftools
 
 
 
