@@ -965,6 +965,81 @@ write.table(nerarbySNP, "rs_04_49813813_nerarbySNP_accession_match.csv", sep=","
 | rs_4_49813787;C/T  | C/T  |
 | rs_4_49813804;T/G  | T/G  |
 
+**Now doing the correlations**
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/compare SNP in gbs")
+list.files()
+
+gbs_chr4_SNPs <- read.csv("gbs_chr4_SNPs.csv", header = T)
+head(gbs_chr4_SNPs)
+
+nearby_SNP <- read.csv("1.rs_04_49813813_nerarbySNP_accession_match.csv", header = T)
+head(nearby_SNP)
+
+matched_SNPs <- merge (nearby_SNP,gbs_chr4_SNPs, by = "SNPs")
+matched_SNPs  = within(matched_SNPs , rm(allele.x,chr,ps,allele.y))
+
+gbs_SNPs <- t(matched_SNPs)
+gbs_SNPs <- as.data.frame(gbs_SNPs)
+
+colnames(gbs_SNPs) <- matched_SNPs$SNPs
+
+gbs_SNPs_1 <- gbs_SNPs [2:240,]
+head(gbs_SNPs_1)
+
+#write.table(gbs_SNPs_1, "gbs_SNPs_1.csv", sep=",")
+
+data <- read.csv("gbs_SNPs_1.csv")
+
+gbs_SNPs_2 <- data.frame(do.call("rbind", strsplit(as.character(data$Accession), ".", fixed = TRUE)))
+gbs_SNPs_3 <- as.data.frame(gbs_SNPs_2$X1)
+dim(gbs_SNPs_3)
+names(gbs_SNPs_3)[1]<-paste("Accession")
+
+final_data <- cbind(gbs_SNPs_3,gbs_SNPs_1)
+head(final_data)
+
+#write.table(final_data, "gbs_SNPs_2.csv", sep=",")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/compare SNP in gbs")
+#delete first col in excel
+df3 <- read.csv ("gbs_SNPs_2.csv")
+head(df3)
+
+df1 <- read.csv("1. ReseqGWAS_traits_revissed_predsALL.csv")
+df2 <- read.csv("SNP_rs_04_49813813.csv")
+df <- merge(df1,df2, by ="LIB")
+df  = within(df , rm(LIB,sample,population,Lat,Lon,HS_score))
+head(df)
+
+
+merged_data <- merge(df,df3,by = "Accession")
+head(merged_data)
+dim(merged_data)
+
+matrix_format <- merged_data[,2:15]
+
+data_cor <- cor(matrix_format[ , colnames(matrix_format) != "x1"],  # Calculate correlations
+                matrix_format$x1)
+data_cor 
+dim(data_cor)
+
+results <- as.data.frame(data_cor[2:14,1])
+names(results)[1]<-paste("rs_04_49813813_C.G")
+
+#write.table(results, "1.correlation_rs_04_49813813_C.G.csv", sep=",")
+
+tiff("nearbySNPs.tiff", width = 10, height = 6, units = 'in', res = 300)
+heatmap(t(`row.names<-`(as.matrix(merged_data[-1]), merged_data$Accession)))
+dev.off()
+```
+
+| SNPs in GBS dataset  | Reseq_rs_4_49813813_C.G (cor) |
+| -------------------- | ------------- |
+| rs_4_49813787;C/T  | 0.600259327  |
+| rs_4_49813804;T/G  | 0.752821624  |
+
+
 <div id='id-section7'/>
 
 ## Chapter 7: GWAS using vcftools
