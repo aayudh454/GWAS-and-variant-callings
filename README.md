@@ -684,7 +684,13 @@ write.table(annotation_Loc_1, "1. Annotation_reseq_top100_preds_all.csv", sep=",
 
 <div id='id-section5'/>
 
-## Chapter 5: GWAS using vcftools
+## Chapter 5: Mapping SNPs and finding SNPs nearby
+
+
+
+<div id='id-section6'/>
+
+## Chapter 6: GWAS using vcftools
 
 
 
@@ -725,5 +731,4 @@ Paste this code in the test.sh and save by *wq* then *qsub test.sh*
 *WHAT THIS VCF.GZ FILE CONTAINS?*
 
 After filtering, kept 1757 out of **1757 Individuals**
-After filtering, kept 64618398 out of a possible **64618398 Sites**
- 
+After filtering, kept 64618398 out of a possible **64618398 Sites** 
