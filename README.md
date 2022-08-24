@@ -522,8 +522,6 @@ dev.off()
 ```
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/manhattan_plot.png)
 
-
-
 **8. Finding top SNPs**
 
 ```
@@ -577,7 +575,7 @@ library(normentR)
 library(dplyr)
 library(fuzzyjoin)
 
-Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene.gff3", header=T, comment.char="#") 
+Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene.gff3", header=T, comment.char="#")
 head(Sorghum_annot)
 names(Sorghum_annot)[9]<-paste("Gene_name")
 names(Sorghum_annot)[4]<-paste("start")
@@ -612,22 +610,22 @@ Sbicolor_annot <- rbind(chr1_9_Sorghum_annot,chr10_Sorghum_annot)
 head(Sbicolor_annot)
 dim(Sbicolor_annot)
 
-#adding these 2 colums to the dataframe will give you the +/- 2.5 kb window
-Sbicolor_annot$start_2.5kb <- Sbicolor_annot$start - 2500
-Sbicolor_annot$stop_2.5kb <- Sbicolor_annot$stop + 2500
+#adding these 2 colums to the dataframe will give you the +/- 5 kb window
+Sbicolor_annot$start_5kb <- Sbicolor_annot$start - 5000
+Sbicolor_annot$stop_5kb <- Sbicolor_annot$stop + 5000
 head(Sbicolor_annot)
 
 
 #setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
 #list.files()
-top1000SNPs <- read.csv("Reseq_preds_all_top1000SNPS.csv", header=T)
-head(top1000SNPs)
-
+top100SNPs <- read.csv("Reseq_preds_all_top100SNPS.csv", header=T)
+top100SNPs = within(top100SNPs, rm(X))
+head(top100SNPs)
 
 library(dplyr)
 library(fuzzyjoin)
-gwas_annot <- fuzzy_left_join(top1000SNPs, Sbicolor_annot, by=c("ps"="start_2.5kb", "ps"="stop_2.5kb", "chr"="chr"), 
-                            match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,p_wald,start, stop)
+gwas_annot <- fuzzy_left_join(top100SNPs, Sbicolor_annot, by=c("ps"="start_5kb", "ps"="stop_5kb", "chr"="chr"),
+                            match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,p_wald,start,stop,direction)
 
 
 gwas_annot_split <- data.frame(do.call("rbind", strsplit(as.character(gwas_annot$Gene_name), ";", fixed = TRUE)))
@@ -644,26 +642,44 @@ gwas_annot_3 <- gwas_annot_2[- grep("ID=Sobic", gwas_annot_2$pacId),]
 head(gwas_annot_3)
 
 library(data.table)
-gwas_annot_3 <- unique(setDT(gwas_annot_2)[order(ps, -ps)], by = "ps")
-dim(gwas_annot_3)
-head(gwas_annot_3)
-
-library(tidyr)
-gwas_annot_4 <- gwas_annot_3 %>% drop_na()
+gwas_annot_4 <- unique(setDT(gwas_annot_3)[order(ps, -ps)], by = "ps")
 dim(gwas_annot_4)
 head(gwas_annot_4)
+
+write.table(gwas_annot_4, "Annotation_reseq_top100_5kb_preds_all.csv", sep=",")
+
+```
+Now download this and run it in R to get gene info
+
+```
+list.files()
+library(tidyverse)
+#library(ggtext)
+library(normentR)
+library(dplyr)
+library(fuzzyjoin)
+
+gwas_annot <- read.csv("Annotation_reseq_top100_5kb_preds_all.csv", header = T)
+head(gwas_annot)
+
+library(tidyr)
+gwas_annot <- gwas_annot %>% drop_na()
+dim(gwas_annot)
+head(gwas_annot)
 
 
 Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
 head(Sorghum_mdata)
 
-annotation_Loc <- merge(Sorghum_mdata,gwas_annot_4, by = "pacId")
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot, by = "pacId")
 dim(annotation_Loc)
 head(annotation_Loc)
+annotation_Loc_1 <- annotation_Loc[order(annotation_Loc$p_wald),]
 
-write.table(annotation_Loc, "Annotation_reseq_preds_all.csv", sep=",")
+write.table(annotation_Loc_1, "1. Annotation_reseq_top100_preds_all.csv", sep=",")
 
 ```
+
 
 
 <div id='id-section5'/>
