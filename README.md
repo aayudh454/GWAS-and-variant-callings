@@ -9,9 +9,9 @@
 
 * [Page 4 2020-12-07](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
-* [Page 5 2020-12-08](#id-section5). Chapter 5: vcftools related functions 
+* [Page 5 2020-12-08](#id-section5). Chapter 5: Mapping SNPs and finding SNPs nearby
 
-* [Page 6 2020-12-08](#id-section6). Chapeter 6: 
+* [Page 6 2020-12-08](#id-section6). Chapeter 6: Vcftools related functions 
 
 * [Page 7 2020-12-14](#id-section7). Chapeter 7: 
 
