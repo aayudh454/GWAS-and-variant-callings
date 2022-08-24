@@ -1,19 +1,19 @@
 # LASKY-MORRIS LAB: Sorghum project
 
 ## Table of contents    
-* [Page 1: 2020-12-05](#id-section1). Chapter 1: Getting resequencing data (by Aayudh)
+* [Page 1: 2022-25-06](#id-section1). Chapter 1: Getting resequencing data (by Aayudh)
 
-* [Page 2: 2020-12-05](#id-section2). Chapter 2: SnpEff (by Luke)
+* [Page 2: 2022-30-06](#id-section2). Chapter 2: SnpEff (by Luke)
 
-* [Page 3 2020-12-06](#id-section3). Chapter 3: Running Beagle (by Luke) 
+* [Page 3 2022-30-06](#id-section3). Chapter 3: Running Beagle (by Luke) 
 
-* [Page 4 2020-12-07](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
+* [Page 4 2022-08-08](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
-* [Page 5 2020-12-08](#id-section5). Chapter 5: Mapping SNPs and finding SNPs nearby (by Aayudh)
+* [Page 5 2022-17-08](#id-section5). Chapter 5: Mapping SNPs and finding SNPs nearby (by Aayudh)
 
-* [Page 6 2020-12-08](#id-section6). Chapeter 6: Finding nearby SNPs 
+* [Page 6 2022-22-08](#id-section6). Chapeter 6: Finding nearby SNPs (by Aayudh)
 
-* [Page 7 2020-12-14](#id-section7). Chapeter 7: Vcftools related functions 
+* [Page 7 2022-02-08](#id-section7). Chapeter 7: Vcftools related functions 
 
 * [Page 8 2020-12-16](#id-section8). Chapeter 8: 
 
