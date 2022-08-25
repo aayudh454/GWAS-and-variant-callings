@@ -682,7 +682,7 @@ write.table(annotation_Loc_1, "1. Annotation_reseq_top100_preds_all.csv", sep=",
 
 <div id='id-section5'/>
 
-## Chapter 5: Mapping SNPs and finding SNPs nearby
+## Chapter 5: Mapping SNPs 
 
 Based on your top hit based on annotation you can map this top SNPs
 
