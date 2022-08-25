@@ -460,19 +460,20 @@ dev.off()
 **7. Making manhattan plot** 
 
 ```
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS/manhattan")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/manhattan plot")
 list.files()
 
 library(tidyverse)
 library(ggtext)
 library(normentR)
+library(ggplot2)
 
-gwas_data_load <- read.csv("Reseq_gwas_HS_score_adj_p_GLM.csv", header=T)
-head(gwas_data_load)
+Chr10corr <- read.csv("Reseq_preds_all_chr10_corrected.csv", header=T)
+head(Chr10corr)
 
-sig_data <- gwas_data_load %>% 
+sig_data <- Chr10corr %>% 
   subset(p_wald < 0.05)
-notsig_data <- gwas_data_load %>% 
+notsig_data <- Chr10corr %>% 
   subset(p_wald >= 0.05) %>%
   group_by(chr) %>% 
   sample_frac(0.1)
@@ -499,26 +500,56 @@ ylim <- gwas_data %>%
 
 sig <- 5e-8
 
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS/manhattan")
-tiff("Reseq_gwas_HS_score_ggplot.tiff", width = 11, height = 7, units = 'in', res = 300)
+##Fdr line
+Chr10corr <- read.csv("Reseq_gwas_chr10_corrected.csv", header=T)
+head(Chr10corr)
+Chr10corr_sub <- subset(Chr10corr, p_FDR < 0.05)
+Chr10corr_sub_1 <- Chr10corr_sub[order(Chr10corr_sub$p_FDR),]
+
+fdr_line <- Chr10corr_sub_1[166,4]
+
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/manhattan plot")
+tiff("Reseq_preds_all_HS_score_ggplot.tiff", width = 11, height = 7, units = 'in', res = 300)
 ggplot(gwas_data, aes(x = bp_cum, y = -log10(p_wald), 
-                                  color = as_factor(chr), size = -log10(p_wald))) +
-  geom_hline(yintercept = -log10(sig), color = "grey40", linetype = "dashed") + 
+                      color = as_factor(chr), size = -log10(p_wald))) +
+  geom_hline(yintercept = -log10(fdr_line), color = "red", linetype = "dashed") +
   geom_point(alpha = 0.75) +
   scale_x_continuous(label = axis_set$chr, breaks = axis_set$center) +
-  scale_y_continuous(expand = c(0,0), limits = c(0, ylim)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 12)) +
   scale_color_manual(values = rep(c("#276FBF", "#183059"), unique(length(axis_set$chr)))) +
   scale_size_continuous(range = c(0.5,3)) +
   labs(x = NULL, 
        y = "-log<sub>10</sub>(p)") + 
   theme_minimal() +
   theme( 
-    legend.position = "none",
+    legend.position = "none",text=element_text(size=18, colour = "black", family="Times"),
     panel.grid.major.x = element_blank(),
     panel.grid.minor.x = element_blank(),
     axis.title.y = element_markdown(),
-    axis.text.x = element_text(angle = 60, size = 8, vjust = 0.5))
+    axis.text.x = element_text(size = 18, vjust = 0.5))
 dev.off()
+
+png(file = 'Reseq_preds_all_HS_score_ggplot.png', width=1400, height=960, res=300)
+ggplot(gwas_data, aes(x = bp_cum, y = -log10(p_wald), 
+                      color = as_factor(chr), size = -log10(p_wald))) +
+  geom_hline(yintercept = -log10(fdr_line), color = "red", linetype = "dashed") +
+  geom_point(alpha = 0.75) +
+  scale_x_continuous(label = axis_set$chr, breaks = axis_set$center) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 12)) +
+  scale_color_manual(values = rep(c("#276FBF", "#183059"), unique(length(axis_set$chr)))) +
+  scale_size_continuous(range = c(0.5,3)) +
+  labs(x = NULL, 
+       y = "-log<sub>10</sub>(p)") + 
+  theme_minimal() +
+  theme( 
+    legend.position = "none",text=element_text(size=18, colour = "black", family="Times"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.y = element_markdown(),
+    axis.text.x = element_text(size = 18, vjust = 0.5))
+dev.off()
+
 ```
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/manhattan_plot.png)
 
