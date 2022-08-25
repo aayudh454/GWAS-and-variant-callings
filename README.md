@@ -9,7 +9,7 @@
 
 * [Page 4 2022-08-08](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
-* [Page 5 2022-17-08](#id-section5). Chapter 5: Mapping SNPs and finding SNPs nearby (by Aayudh)
+* [Page 5 2022-17-08](#id-section5). Chapter 5: Mapping SNPs (by Aayudh)
 
 * [Page 6 2022-22-08](#id-section6). Chapeter 6: Finding nearby SNPs (by Aayudh)
 
