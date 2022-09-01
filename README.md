@@ -284,12 +284,12 @@ mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, 
 dim(mySNPmatrix$genotype)
 
 #these lines create the bed file for gemma
-rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs])
-SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions), 'A', 'T', t(mySNPmatrix$genotype)) 
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs], allele = snp.allele[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions, '_', rs$allele), 'A', 'T', t(mySNPmatrix$genotype)) 
 write.table(SNPs_bim, 'mySNPbed.bed', row.names = FALSE, quote = FALSE, col.names = FALSE, sep = ',') 
 
 #kinship matrix for gemma obtained with 'identity by state'
-ibs <- snpgdsIBS(genofile, sample.id=traits$LIB, snp.id=mySNPs, maf = 0.05, missing.rate = 0)
+ibs <- snpgdsIBS(genofile, sample.id=traits$LIB, snp.id=mySNPs, maf = 0.05, missing.rate = 0.5)
 ibs.matrix <- ibs$ibs
 dim(ibs.matrix)
 
