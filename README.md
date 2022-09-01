@@ -272,11 +272,12 @@ snp.rs.id <- read.gdsn(index.gdsn(genofile, 'snp.rs.id'))
 
 #you can use your traits file to get SNPs only for genotypes with phenotypic data
 #the trait file should have a column 'sample.id' that corresponds to the id in the genofile
-traits <- data.frame(read.csv('1. ReseqGWAS_traits.csv', header=TRUE))
+setwd("~/work/preds_all_gwas")
+traits <- data.frame(read.csv('1_ReseqGWAS_traits_revissed_predsALL.csv', header=TRUE))
 head(traits)
 
 #no need to account for LD when getting SNPs for GWAS. 
-mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0)
+mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0.5)
 length(mySNPs)
 
 mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, with.id = TRUE)
