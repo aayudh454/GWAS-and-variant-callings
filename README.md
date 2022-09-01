@@ -257,7 +257,7 @@ write.table(ReseqGWAS_traits, "1. ReseqGWAS_traits.csv", sep=",")
 #PBS -A jrl35_c_g_sc_default
 #PBS -j oe
 
-setwd("~/scratch/gwas_reseq")
+setwd("/gpfs/group/jrl35/default/aayudh/gwas_reseq")
 
 library(gdsfmt)
 library(SNPRelate)
