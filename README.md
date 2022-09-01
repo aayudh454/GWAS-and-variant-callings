@@ -293,6 +293,7 @@ ibs <- snpgdsIBS(genofile, sample.id=traits$LIB, snp.id=mySNPs, maf = 0.05, miss
 ibs.matrix <- ibs$ibs
 dim(ibs.matrix)
 
+setwd("~/work/preds_all_gwas")
 write.table(ibs.matrix, 'ibs_matrix.txt', row.names = FALSE, col.names = FALSE, quote = FALSE, sep = ', ')
 
 #prepare the trait data for gemma, accessions should be in the same order as in the genetic matrices
@@ -305,7 +306,8 @@ order.idx
 
 ordered <- traits[order.idx,]
 
-write.table(ordered$Suitability_data, 'HS_score_BimBam.txt', row.names = FALSE, quote = FALSE, col.names = FALSE)
+setwd("~/work/preds_all_gwas")
+write.table(ordered$HS_score, 'HS_score_BimBam.txt', row.names = FALSE, quote = FALSE, col.names = FALSE)
 ```
 
 Excluding 3,238,815 SNPs on non-autosomes
