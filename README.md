@@ -203,14 +203,13 @@ snpgdsVCF2GDS(vcf.fn, "Sorghum_1757_Reseq.gds", method="biallelic.only")
 
 **2. Create the id matching files with trait value** 
 
-We are using accessions from Lasky et al (2015). NOTE: You need to match the genofile$sample.id format with the metadata column.
+NOTE: You need to match the genofile$sample.id format with the metadata column.
 
 ```
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/sample accessions ")
 list.files()
-
-lasky_2015 <- read.csv("Lasky_2015_Accessions_cords.csv")
-head(lasky_2015)
+Fanna_list <- read.csv("Sorghum_metadata_Coordinates_set.csv")
+head(Fanna_list)
 
 Reseq_matadata <- read.csv("Sorghum_all_1757g_metadata.csv")
 head(Reseq_matadata)
@@ -219,12 +218,18 @@ head(final_data_1)
 Reseq_matadata_1 <- cbind (Reseq_matadata,final_data_1)
 head(Reseq_matadata_1)
 names(Reseq_matadata_1)[names(Reseq_matadata_1) == 'final_data_1'] <- 'Accession'
+head(Reseq_matadata_1)
 
-Reseq_lasky<- merge(Reseq_matadata_1,lasky_2015, by="Accession")
-dim(Reseq_lasky)
-head(Reseq_lasky)
+Reseq_accessions<- merge(Reseq_matadata_1,Fanna_list, by="Accession")
+dim(Reseq_accessions)
+head(Reseq_accessions)
 library(data.table)
-MASTER_data_final <- unique(setDT(Reseq_lasky)[order(Accession, -Accession)], by = "Accession")
+Reseq_accessions_1 <- unique(setDT(Reseq_accessions)[order(Accession, -Accession)], by = "Accession")
+dim(Reseq_accessions_1)
+head(Reseq_accessions_1)
+
+library(tidyr)
+MASTER_data_final <- Reseq_accessions_1  %>% drop_na()
 dim(MASTER_data_final)
 head(MASTER_data_final)
 
@@ -236,13 +241,29 @@ library(tidyverse)
 setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
 list.files()
 
-preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
-preds.all
+preds.sorg <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.sorg.tif"))
+preds.sorg
 
-Suitability_data <- raster::extract(preds.all, MASTER_data_final[,c("Lon","Lat")])
-ReseqGWAS_traits <- cbind(MASTER_data_final,Suitability_data)
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
-write.table(ReseqGWAS_traits, "1. ReseqGWAS_traits.csv", sep=",")
+HS_score <- raster::extract(preds.sorg, MASTER_data_final[,c("Lon","Lat")])
+ReseqGWAS_traits <- cbind(MASTER_data_final,HS_score)
+head(ReseqGWAS_traits)
+dim(ReseqGWAS_traits)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/sample accessions ")
+#write.table(ReseqGWAS_traits, "ReseqGWAS_traits_with_NA.csv", sep=",")
+
+
+library(tidyr)
+ReseqGWAS_traits_1 <- ReseqGWAS_traits %>% drop_na()
+dim(ReseqGWAS_traits_1)
+head(ReseqGWAS_traits_1)
+
+ReseqGWAS_traits_2 <- unique(setDT(ReseqGWAS_traits_1)[order(Accession, -Accession)], by = "Accession")
+dim(ReseqGWAS_traits_2)
+head(ReseqGWAS_traits_2)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/sample accessions ")
+write.table(ReseqGWAS_traits_2, "1_ReseqGWAS_traits_revissed_preds_sorg.csv", sep=",")
 ```
 
 **3. From genofile to ibs.matrix,mySNPbed.bed and HS_score_BimBam.txt file.** 
