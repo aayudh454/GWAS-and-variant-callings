@@ -403,22 +403,25 @@ se(beta) =   0.00719141
 **5. Clean gemma txt file** 
 
 ```
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/resequencing data_GWAS")
-list.files()
-
-
-gemma_output <- read.table("Reseq_gwas_HS_score_out.assoc.txt", header = TRUE, sep = "", dec = ".")
+#setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/clean_gemma")
+gemma_output <- read.table("Reseq_preds_all_HS_score_out.assoc.txt", header = TRUE, sep = "", dec = ".")
 head(gemma_output)
 tail(gemma_output)
 dim(gemma_output)
 
 rs <- gemma_output[,2]
-tmp <- sub('rs_', '', rs)
-chr <- sub('_.*$','',tmp)
-ps <- sub('._', '', tmp)
-gemma_output.clean <- cbind(chr,rs,ps,gemma_output[,c(4:15)])
-head(gemma_output.clean)
-write.table(gemma_output.clean, 'Reseq_preds_all_HS_score_out.assoc.clean.txt', row.names = FALSE, quote = FALSE, col.names = TRUE, sep = '\t')
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(gemma_output$rs), "_", fixed = TRUE)))
+head(rs_split)
+
+gemma_output[, "chr"] <- rs_split$X2
+gemma_output[, "ps"] <- rs_split$X3
+allele <- rs_split$X4
+
+gemma_output_clean <- cbind(gemma_output,allele)
+head(gemma_output_clean)
+
+write.table(gemma_output_clean, 'Reseq_preds_all_HS_score_out.assoc.clean.txt', row.names = FALSE, quote = FALSE, col.names = TRUE, sep = '\t')
+
 ```
 
 **6. FDR corrections** 
