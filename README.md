@@ -1100,7 +1100,46 @@ dev.off()
 
 ## Chapter 7: Indel asscoiation 
 
+unzip indel.gz first
 
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=24:00:00
+#PBS -l pmem=48gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+WORKINGDIR=/gpfs/group/jrl35/default/aayudh/results_beagle
+
+cd $WORKINGDIR
+
+gunzip Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf.gz
+```
+
+**Create gds file**: method = "copy.num.of.ref": to extract and store dosage (0, 1, 2) of the reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs, **indels** and structural variants.
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+setwd("/gpfs/group/jrl35/default/aayudh/results_beagle")
+
+library(gdsfmt)
+library(SNPRelate)
+
+vcf.fn <- "/gpfs/group/jrl35/default/aayudh/results_beagle/Sorghum_1757g_AllChr.polymorphic.indel.noRepeats.5pctMasked.imputed.vcf"
+
+snpgdsVCF2GDS(vcf.fn, "Sorghum_Reseq_INDELS.gds", method="copy.num.of.ref")
+```
 
 
 -----
