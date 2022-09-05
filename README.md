@@ -13,9 +13,9 @@
 
 * [Page 6 2022-22-08](#id-section6). Chapeter 6: Finding nearby SNPs (by Aayudh)
 
-* [Page 7 2022-02-08](#id-section7). Chapeter 7: Vcftools related functions 
+* [Page 7 2022-02-08](#id-section7). Chapeter 7: Indels association (by Aayudh)
 
-* [Page 8 2020-12-16](#id-section8). Chapeter 8: 
+* [Page 8 2020-12-16](#id-section8). Chapeter 8: GWAS using vcftools
 
 * [Page 9 2020-12-22](#id-section9). Chapter 9: 
 
@@ -120,7 +120,6 @@ bgzip Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined
 
 ------
 
-
 <div id='id-section3'/>
 
 ## Chapter 3: SnpEff (by Luke)
@@ -150,7 +149,6 @@ java -jar snpEff.jar -c snpEff.config -v Sorghum_bicolor Sorghum_1757g_AllChr.po
 
 
 ------
-
 
 <div id='id-section4'/>
 
@@ -734,7 +732,7 @@ annotation_Loc_1 <- annotation_Loc[order(annotation_Loc$p_wald),]
 write.table(annotation_Loc_1, "1. Annotation_reseq_top100_preds_all.csv", sep=",")
 
 ```
-
+-----
 <div id='id-section5'/>
 
 ## Chapter 5: Mapping SNPs 
@@ -897,6 +895,7 @@ dev.off()
 ```
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/Mapping%20SNPs.png)
 
+-----
 <div id='id-section6'/>
 
 ## Chapter 6: Finding nearby SNPs
@@ -1096,10 +1095,18 @@ dev.off()
 
 *cor=Pearson correlation coefficient*
 
+-----
 <div id='id-section7'/>
 
-## Chapter 7: GWAS using vcftools
+## Chapter 7: Indel asscoiation 
 
+
+
+
+-----
+<div id='id-section8'/>
+
+## Chapter 8: GWAS using vcftools
 
 
 **Installing vcftools**
