@@ -681,7 +681,7 @@ head(top100SNPs)
 library(dplyr)
 library(fuzzyjoin)
 gwas_annot <- fuzzy_left_join(top100SNPs, Sbicolor_annot, by=c("ps"="start_5kb", "ps"="stop_5kb", "chr"="chr"),
-                            match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,p_wald,start,stop,direction)
+                            match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,af,p_wald,start,stop,direction)
 
 
 gwas_annot_split <- data.frame(do.call("rbind", strsplit(as.character(gwas_annot$Gene_name), ";", fixed = TRUE)))
