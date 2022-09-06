@@ -1145,6 +1145,201 @@ snpgdsVCF2GDS(vcf.fn, "Sorghum_Reseq_INDELS.gds", method="copy.num.of.ref")
 ```
 The total number of samples: 1757 ; The total number of SNPs: 4292419 ; SNP genotypes are stored in SNP-major mode (Sample X SNP).
 
+### Association of INDELS
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+list.files()
+
+library(gdsfmt)
+library(SNPRelate)
+
+genofile <- snpgdsOpen('Sorghum_Reseq_INDELS.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+snp.allele <- read.gdsn(index.gdsn(genofile, 'snp.allele'))
+
+snpgdsSummary('Sorghum_Reseq_INDELS.gds')
+
+traits <- data.frame(read.csv('1. ReseqGWAS_traits_revissed_predsALL.csv', header=TRUE))
+head(traits)
+
+mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0.5)
+length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+#these lines create the bed file for gemma
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs],allele = snp.allele[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions, ';', rs$allele), 'A', 'T', t(mySNPmatrix$genotype)) 
+dim(SNPs_bim)
+SNPs_bim[1:5.1:5]
+
+setwd("~/work/sorgh.preds_gwas")
+write.table(SNPs_bim, 'mySNPbed.bed', row.names = FALSE, quote = FALSE, col.names = FALSE, sep = ',') 
+
+###clean gemma output
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+list.files()
+gemma_output <- read.table("Reseq_preds_all_indels_out.assoc.txt", header = TRUE, sep = "", dec = ".")
+head(gemma_output)
+tail(gemma_output)
+dim(gemma_output)
+
+rs <- gemma_output[,2]
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(gemma_output$rs), "_", fixed = TRUE)))
+rs_allele <- data.frame(do.call("rbind", strsplit(as.character(rs_split$X3), ";", fixed = TRUE)))
+rs_noallele <- data.frame(do.call("rbind", strsplit(as.character(gemma_output$rs), ";", fixed = TRUE)))
+head(rs_split)
+head(rs_allele)
+head(rs_noallele)
+
+gemma_output[, "chr"] <- rs_split$X2
+gemma_output[, "ps"] <- rs_allele$X1
+gemma_output[, "rs"] <- rs_noallele$X1
+allele <- rs_allele$X2
+
+gemma_output_clean <- cbind(gemma_output,allele)
+head(gemma_output_clean)
+dim(gemma_output_clean)
+
+require(dplyr)
+gemma_output_final <- gemma_output_clean %>% relocate(allele, .before = n_miss)
+head(gemma_output_final)
+dim(gemma_output_final)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+#write.table(gemma_output_final, 'Reseq_preds_all_indels_out.assoc_clean.txt', row.names = FALSE, quote = FALSE, col.names = TRUE, sep = '\t')
+
+gemma_output_final <- read.table("Reseq_preds_all_indels_out.assoc_clean.txt", header = TRUE, sep = "", dec = ".")
+
+top_SNPs <- gemma_output_final[with(gemma_output_final,order(p_wald)),]
+head(top_SNPs)
+
+Reseq_topSNPS <- top_SNPs[1:100,]
+head(Reseq_topSNPS)
+
+write.csv(Reseq_topSNPS, file="Reseq_INDELS_preds_all_top100SNPS.csv", quote = T, eol = "\n", na= "NA")
+```
+
+### INDELS Annotations
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+
+setwd("~/work/preds_all_gwas/annotation")
+#setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+#list.files()
+library(tidyverse)
+#library(ggtext)
+library(normentR)
+library(dplyr)
+library(fuzzyjoin)
+
+Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene.gff3", header=T, comment.char="#")
+head(Sorghum_annot)
+names(Sorghum_annot)[9]<-paste("Gene_name")
+names(Sorghum_annot)[4]<-paste("start")
+names(Sorghum_annot)[5]<-paste("stop")
+names(Sorghum_annot)[7]<-paste("direction")
+names(Sorghum_annot)[1]<-paste("chr")
+Sorghum_annot = within(Sorghum_annot, rm(.,..1,phytozomev12))
+head(Sorghum_annot)
+
+chr_new = substring(Sorghum_annot$chr, 4)
+#replace column
+Sorghum_annot[, "chr"] <- chr_new
+head(Sorghum_annot)
+dim(Sorghum_annot)
+
+#Sorghum_annot[389067,1]
+#Sorghum_annot[389068,1]
+
+chr10_Sorghum_annot <- Sorghum_annot[Sorghum_annot$chr == '10',]
+dim(chr10_Sorghum_annot)
+chr1_9_Sorghum_annot <- Sorghum_annot[1:389067,]
+chr1_9_Sorghum_annot_1 = substring(chr1_9_Sorghum_annot$chr, 2)
+head(chr1_9_Sorghum_annot_1)
+
+chr1_9_Sorghum_annot[, "chr"] <- chr1_9_Sorghum_annot_1
+head(chr1_9_Sorghum_annot)
+dim(chr1_9_Sorghum_annot)
+
+Sbicolor_annot <- rbind(chr1_9_Sorghum_annot,chr10_Sorghum_annot)
+head(Sbicolor_annot)
+dim(Sbicolor_annot)
+
+#adding these 2 colums to the dataframe will give you the +/- 5 kb window
+Sbicolor_annot$start_5kb <- Sbicolor_annot$start - 5000
+Sbicolor_annot$stop_5kb <- Sbicolor_annot$stop + 5000
+head(Sbicolor_annot)
+
+#setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+setwd("~/work/preds_all_gwas/indels")
+top100SNPs <- read.csv("Reseq_INDELS_preds_all_top100SNPS.csv", header=T)
+head(top100SNPs)
+
+library(dplyr)
+library(fuzzyjoin)
+gwas_annot <- fuzzy_left_join(top100SNPs, Sbicolor_annot, by=c("ps"="start_5kb", "ps"="stop_5kb", "chr"="chr"),
+                              match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,af,p_wald,start,stop,direction)
+
+gwas_annot_split <- data.frame(do.call("rbind", strsplit(as.character(gwas_annot$Gene_name), ";", fixed = TRUE)))
+pacId <- sub('pacid=', '', gwas_annot_split$X3)
+head(gwas_annot_split)
+
+gwas_annot_1 <- cbind (pacId,gwas_annot)
+gwas_annot_1 = within(gwas_annot_1, rm(Gene_name))
+head(gwas_annot_1)
+gwas_annot_2 <- gwas_annot_1[- grep("ancestorIdentifier", gwas_annot_1$pacId),]
+head(gwas_annot_2)
+
+gwas_annot_3 <- gwas_annot_2[- grep("ID=Sobic", gwas_annot_2$pacId),]
+head(gwas_annot_3)
+
+library(data.table)
+gwas_annot_4 <- unique(setDT(gwas_annot_3)[order(ps, -ps)], by = "ps")
+dim(gwas_annot_4)
+head(gwas_annot_4)
+
+write.table(gwas_annot_4, "Annotation_reseq_INDELS_top100_5kb_preds_all.csv", sep=",")
+```
+Now do in R
+
+```
+#-------R part----------------------
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+gwas_annot <- read.csv("Annotation_reseq_INDELS_top100_5kb_preds_all.csv", header = T)
+head(gwas_annot)
+
+library(tidyr)
+gwas_annot <- gwas_annot %>% drop_na()
+dim(gwas_annot)
+head(gwas_annot)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot, by = "pacId")
+dim(annotation_Loc)
+head(annotation_Loc)
+annotation_Loc_1 <- annotation_Loc[order(annotation_Loc$p_wald),]
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+write.table(annotation_Loc_1, "1. Annotation_INDELS_top100_preds_all.csv", sep=",")
+```
+
 -----
 <div id='id-section8'/>
 
