@@ -1145,7 +1145,7 @@ snpgdsVCF2GDS(vcf.fn, "Sorghum_Reseq_INDELS.gds", method="copy.num.of.ref")
 ```
 The total number of samples: 1757 ; The total number of SNPs: 4292419 ; SNP genotypes are stored in SNP-major mode (Sample X SNP).
 
-### Association of INDELS
+### Association of INDELS using GEMMA
 
 ```
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
@@ -1180,7 +1180,7 @@ SNPs_bim[1:5.1:5]
 setwd("~/work/sorgh.preds_gwas")
 write.table(SNPs_bim, 'mySNPbed.bed', row.names = FALSE, quote = FALSE, col.names = FALSE, sep = ',') 
 ```
-Now take the ibs.matrix of preds_all SNP and HS_score_BimBam.txt to a same folder along with .bed file. You can copy **gemma-0.98.5-linux-static** there as well. Then run the script 
+Now take the ibs.matrix of preds_all SNP and HS_score_BimBam.txt to a same folder along with .bed file. You can copy **gemma-0.98.5-linux-static** there as well. Then run the script- 
 
 ```
 #!/bin/bash
@@ -1197,7 +1197,7 @@ cd $WORKINGDIR
 
 ./gemma-0.98.5-linux-static -g mySNPbed.bed -k ibs_matrix.txt -lmm 4 -miss 0.1 -p HS_score_BimBam.txt -o Reseq_preds_all_indels_out
 ```
-
+Download the output and clean it-
 ```
 ###clean gemma output
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
@@ -1243,7 +1243,7 @@ head(Reseq_topSNPS)
 write.csv(Reseq_topSNPS, file="Reseq_INDELS_preds_all_top100SNPS.csv", quote = T, eol = "\n", na= "NA")
 ```
 
-### INDELS Annotations
+### INDELS Annotations 
 
 ```
 #!/usr/bin/env Rscript
