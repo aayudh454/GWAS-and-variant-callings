@@ -1179,7 +1179,26 @@ SNPs_bim[1:5.1:5]
 
 setwd("~/work/sorgh.preds_gwas")
 write.table(SNPs_bim, 'mySNPbed.bed', row.names = FALSE, quote = FALSE, col.names = FALSE, sep = ',') 
+```
+Now take the ibs.matrix of preds_all SNP and HS_score_BimBam.txt to a same folder along with .bed file. You can copy **gemma-0.98.5-linux-static** there as well. Then run the script 
 
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+WORKINGDIR=/storage/home/azd6024/work/preds_all_gwas/indels
+cd $WORKINGDIR
+
+./gemma-0.98.5-linux-static -g mySNPbed.bed -k ibs_matrix.txt -lmm 4 -miss 0.1 -p HS_score_BimBam.txt -o Reseq_preds_all_indels_out
+```
+
+```
 ###clean gemma output
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
 list.files()
