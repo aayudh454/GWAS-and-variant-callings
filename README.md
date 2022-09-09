@@ -1358,6 +1358,91 @@ annotation_Loc_1 <- annotation_Loc[order(annotation_Loc$p_wald),]
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
 write.table(annotation_Loc_1, "1. Annotation_INDELS_top100_preds_all.csv", sep=",")
 ```
+### INDELS-SNP correlation
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+list.files()
+
+library(gdsfmt)
+library(SNPRelate)
+
+genofile <- snpgdsOpen('Sorghum_Reseq_INDELS.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+snp.allele <- read.gdsn(index.gdsn(genofile, 'snp.allele'))
+
+snpgdsSummary('Sorghum_Reseq_INDELS.gds')
+
+traits <- data.frame(read.csv('1. ReseqGWAS_traits_revissed_predsALL.csv', header=TRUE))
+head(traits)
+
+mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0.5)
+length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+#these lines create the bed file for gemma
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs],allele = snp.allele[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions, ';', rs$allele), t(mySNPmatrix$genotype)) 
+dim(SNPs_bim)
+SNPs_bim[1:5.1:5]
+
+data_2 <- SNPs_bim[,2:340]
+colnames(data_2) <- mySNPmatrix$sample.id
+data_3 <- cbind(SNPs_bim[,1],data_2)
+head(data_3)
+dim(data_3)
+data_3[1,1]
+names(data_3)[1]<-paste("Indels")
+
+data_4 <- data.frame(do.call("rbind", strsplit(as.character(data_3$Indels), ";", fixed = TRUE)))
+
+data_5 <- cbind (data_4,data_3)
+names(data_5)[1]<-paste("position")
+names(data_5)[2]<-paste("allele")
+data_5 = within(data_5, rm(Indels))
+
+
+data_49813789 <- subset(data_5, position=="rs_04_49813789")
+data_new <- data_49813789[ , colSums(is.na(data_49813789)) < nrow(data_49813789)] 
+data_indel_49813789 <- t(data_new)
+
+Indels_49813789 <- as.data.frame(data_indel_49813789)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indel_snp_corr")
+write.table(Indels_49813789, "INDEL_rs_04_49813789.csv", sep=",")
+
+#-----------------------------------------------------------------SNPvsIndel------------------
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+list.files()
+SNP <- read.csv("SNP_rs_04_49813813.csv")
+INDEL <- read.csv("INDEL_rs_04_49813789.csv")
+
+SNP_INDEL_corr<- merge(SNP,INDEL, by="LIB")
+head(SNP_INDEL_corr)
+
+cor.test(SNP_INDEL_corr$SNP_04_49813813_C.G,SNP_INDEL_corr$INDEL_04_49813789_TA.T, method="pearson")
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/indels")
+tiff("SNP_INDEL_corr.tiff",width = 5, height = 5, units = 'in', res = 300)
+par(family="Times")
+par(pty="s")
+plot(SNP_INDEL_corr$SNP_04_49813813_C.G,SNP_INDEL_corr$INDEL_04_49813789_TA.T, 
+     pch = 19, col="blue",xaxt="n",yaxt="n",ylab = "INDEL:Chr4-49813789 (TA/T)",xlab = "SNP:Chr4-49813813 (C/G)",font = 1, las=1)
+abline(lm(SNP_INDEL_corr$INDEL_04_49813789_TA.T~SNP_INDEL_corr$SNP_04_49813813_C.G), 
+       col = "black", lty = 2, lwd=2)
+axis(side = 1, at=seq(min(SNP_INDEL_corr$SNP_04_49813813_C.G), max(SNP_INDEL_corr$SNP_04_49813813_C.G), by = ((-min(SNP_INDEL_corr$SNP_04_49813813_C.G)+max(SNP_INDEL_corr$SNP_04_49813813_C.G))/2)),las=1,cex.axis = 1.5)
+axis(side = 2, at=seq(min(SNP_INDEL_corr$INDEL_04_49813789_TA.T), max(SNP_INDEL_corr$INDEL_04_49813789_TA.T), by = ((-min(SNP_INDEL_corr$INDEL_04_49813789_TA.T)+max(SNP_INDEL_corr$INDEL_04_49813789_TA.T))/2)),las=1,cex.axis = 1.5)
+dev.off()
+
+library("ggpubr")
+ggscatter(SNP_INDEL_corr, x = "SNP_04_49813813_C.G", y = "INDEL_04_49813789_TA.T", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "SNP_Chr4_49813813_C/G", ylab = "INDEL_Chr4_49813789_TA/T")
+```
 
 -----
 <div id='id-section8'/>
