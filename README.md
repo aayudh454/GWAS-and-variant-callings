@@ -359,7 +359,7 @@ chmod 700 gemma-0.98.5-linux-static
 #PBS -l walltime=12:00:00
 #PBS -l pmem=24gb
 #PBS -M azd6024@psu.edu
-#PBS -A jrl35_c_g_sc_default
+#PBS -A open
 #PBS -j oe
 
 WORKINGDIR=/storage/home/azd6024/work/gwas_reseq
