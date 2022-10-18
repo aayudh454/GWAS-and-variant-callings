@@ -17,7 +17,7 @@
 
 * [Page 8 2020-12-16](#id-section8). Chapeter 8: GWAS using vcftools
 
-* [Page 9 2020-12-22](#id-section9). Chapter 9: 
+* [Page 9 2020-12-22](#id-section9). Chapter 9: Tajima's D and Fst
 
 * [Page 10 2020-12-22](#id-section10). Chapter10: 
 
@@ -1488,3 +1488,78 @@ Paste this code in the test.sh and save by *wq* then *qsub test.sh*
 
 After filtering, kept 1757 out of **1757 Individuals**
 After filtering, kept 64618398 out of a possible **64618398 Sites** 
+
+-----
+<div id='id-section9'/>
+
+## Chapter 9: Tajima's D and Fst
+
+### Tajima's D for reseq Sorghum dataset
+
+Intro: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-289
+
+Tajima's D is computed as the difference between two measures of genetic diversity: the mean number of pairwise differences and the number of segregating sites, each scaled so that they are expected to be the same in a neutrally evolving population of constant size.
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+WORKINGDIR=/gpfs/group/jrl35/default/aayudh/gwas_reseq
+cd $WORKINGDIR
+
+vcftools --gzvcf Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf.gz --out tajimasd --TajimaD 1000
+```
+
+R part
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+library(ggplot2)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(tidyr)
+
+tajimasD <- read.csv("tajimasd_1kb_window.csv")
+head(tajimasD)
+
+data <- tajimasD[1:683650,]
+data <- data %>% drop_na()
+chr = substring(data$CHROM, 4)
+data[, "CHROM"] <- chr
+tail(data)
+
+mean(data$TajimaD)
+median(data$TajimaD)
+
+# Basic box plot
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+tiff("Reseq_tajimasD.tiff", width = 5, height = 5, units = 'in', res = 300)
+ggplot(data, aes(x=CHROM, y=TajimaD,color=CHROM)) + geom_boxplot() +
+  scale_color_manual(values=c("brown","black","brown","black","brown","black","brown","black","brown","black"))+ 
+  labs(title=NULL,x="Chromosome", y = "Tajima's D")+
+  scale_y_continuous(limits = c(-2.6, 6.5), breaks = seq(-2.6, 6.5,3))+
+  theme_classic() +
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16))
+dev.off()
+
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+tiff("tajimasD_histogram.tiff", width = 5, height = 5, units = 'in', res = 300)
+hist(data$TajimaD, prob = TRUE, main = NULL, xlab="Tajima's D",col = "lightblue")
+x <- seq(min(data$TajimaD), max(data$TajimaD), length = 40)
+f <- dnorm(x, mean = mean(data$TajimaD), sd = sd(data$TajimaD))
+lines(x, f, col = "red", lwd = 2)
+dev.off()
+```
+
