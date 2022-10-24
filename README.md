@@ -1500,6 +1500,10 @@ Intro: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14
 
 Tajima's D is computed as the difference between two measures of genetic diversity: the mean number of pairwise differences and the number of segregating sites, each scaled so that they are expected to be the same in a neutrally evolving population of constant size.
 
+A *negative Tajima's D* signifies an excess of low frequency polymorphisms relative to expectation, indicating population size expansion (e.g., after a bottleneck or a selective sweep)
+
+A *positive Tajima's D* signifies low levels of both low and high frequency polymorphisms, indicating a decrease in population size and/or balancing selection.
+
 ```
 #!/bin/bash
 
