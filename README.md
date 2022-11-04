@@ -19,7 +19,7 @@
 
 * [Page 9 2020-12-22](#id-section9). Chapter 9: Tajima's D and Fst
 
-* [Page 10 2020-12-22](#id-section10). Chapter10: 
+* [Page 10 2020-12-22](#id-section10). Chapter 10: Fst estimation of Sorghum Reseq 
 
 * [Page 11 2021-04-06](#id-section11). Chapter11: 
 * [Page 12 2021-04-06](#id-section12). Chapter12: 
@@ -1566,4 +1566,399 @@ f <- dnorm(x, mean = mean(data$TajimaD), sd = sd(data$TajimaD))
 lines(x, f, col = "red", lwd = 2)
 dev.off()
 ```
+
+-----
+<div id='id-section10'/>
+
+## Chapter 10: Fst estimation of Sorghum Reseq 
+
+### Choosing Fst population
+
+1. We have to just take 384 accessions that has geographic info and then identify country
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+data <- read.csv("Reseq_accessions_Aayudh.csv")
+head(data)
+
+library(maps)
+data$country <- map.where("world", data$Lon, data$Lat)
+head(data)
+```
+
+2. Now divide africa into different pop grids
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+data <- read.csv("Reseq_accessions_country.csv")
+head(data)
+##Remove a country
+#cc <- data[- grep("India", data$country),]
+##Remove multiple country
+onlyAfrica <- data[!grepl("India|USA|Sri Lanka|Pakistan|China|Australia|Turkey|Syria", data$country),]
+
+world <- map_data("world")
+head(world)
+
+World_africa <- world[(world$long > -20) & (world$long < 55), ]
+World_africa_1 <- World_africa[(World_africa$lat > -35) & (World_africa$lat < 35), ]
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq/fst populations")
+tiff("Africa_grids.tiff", width = 6, height = 6, units = 'in', res = 300)
+ggplot() + geom_map(data = world, map = world,aes(long, lat, map_id = region),
+                    color = "black", fill = "white", size = 0.5) +
+  geom_point(data = onlyAfrica,size=0.5,color = "red",aes(Lon, Lat),alpha = 1) +
+  coord_sf(xlim = c(-20, 50), ylim = c(-35, 35), expand = FALSE) +  
+  theme(panel.grid = element_line(color = "#8ccde3",size = 0.75,linetype = 2),
+        panel.ontop = TRUE, panel.background = element_rect(color = NA, fill = NA))
+dev.off()
+
+#further modify grid
+
+world <- map_data("world")
+head(world)
+
+World_africa <- world[(world$long > -20) & (world$long < 55), ]
+World_africa_1 <- World_africa[(World_africa$lat > -35) & (World_africa$lat < 35), ]
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq/fst populations")
+tiff("Africa_grids_2degree.tiff", width = 6, height = 6, units = 'in', res = 300)
+ggplot() + geom_map(data = World_africa_1, map = World_africa_1,aes(long, lat, map_id = region),
+                    color = "black", fill = "white", size = 0.5) +
+  geom_point(data = onlyAfrica,size=0.5,color = "red",aes(Lon, Lat),alpha = 1) +
+  theme(panel.grid = element_line(color = "#8ccde3",size = 0.15,linetype = 1),
+        panel.ontop = TRUE, panel.background = element_rect(color = NA, fill = NA))+
+  scale_y_continuous(breaks = seq(-35, 35, by = 2))+
+  scale_x_continuous(breaks = seq(-20, 55, by = 2))
+dev.off()
+
+###populations
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq/fst populations")
+pop1 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > -20) & (onlyAfrica$Lon < -10), ]
+write.csv(pop1,"pop1.csv")
+
+pop2 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > -10) & (onlyAfrica$Lon < 0), ]
+write.csv(pop2,"pop2.csv")
+
+pop3 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > -0) & (onlyAfrica$Lon < 10), ]
+write.csv(pop3,"pop3.csv")
+
+pop4 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > 10) & (onlyAfrica$Lon < 20), ]
+write.csv(pop4,"pop4.csv")
+
+pop5 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > 20) & (onlyAfrica$Lon < 30), ]
+write.csv(pop5,"pop5.csv")
+
+pop6 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > 30) & (onlyAfrica$Lon < 40), ]
+write.csv(pop6,"pop6.csv")
+
+pop7 <- onlyAfrica[(onlyAfrica$Lat > 12) & (onlyAfrica$Lat < 20) & 
+                     (onlyAfrica$Lon > 40) & (onlyAfrica$Lon < 50), ]
+write.csv(pop7,"pop7.csv")
+
+pop8 <- onlyAfrica[(onlyAfrica$Lat > 2) & (onlyAfrica$Lat < 12) & 
+                     (onlyAfrica$Lon > -10) & (onlyAfrica$Lon < 0), ]
+write.csv(pop8,"pop8.csv")
+
+pop9 <- onlyAfrica[(onlyAfrica$Lat > 2) & (onlyAfrica$Lat < 12) & 
+                     (onlyAfrica$Lon > -0) & (onlyAfrica$Lon < 10), ]
+write.csv(pop9,"pop9.csv")
+
+pop10 <- onlyAfrica[(onlyAfrica$Lat > 2) & (onlyAfrica$Lat < 12) & 
+                      (onlyAfrica$Lon > 10) & (onlyAfrica$Lon < 20), ]
+write.csv(pop10,"pop10.csv")
+
+pop11 <- onlyAfrica[(onlyAfrica$Lat > 2) & (onlyAfrica$Lat < 12) & 
+                      (onlyAfrica$Lon > 20) & (onlyAfrica$Lon < 30), ]
+write.csv(pop11,"pop11.csv")
+
+pop12 <- onlyAfrica[(onlyAfrica$Lat > 2) & (onlyAfrica$Lat < 12) & 
+                      (onlyAfrica$Lon > 30) & (onlyAfrica$Lon < 40), ]
+write.csv(pop12,"pop12.csv")
+
+pop13 <- onlyAfrica[(onlyAfrica$Lat > 2) & (onlyAfrica$Lat < 12) & 
+                      (onlyAfrica$Lon > 40) & (onlyAfrica$Lon < 50), ]
+write.csv(pop13,"pop13.csv")
+
+pop14 <- onlyAfrica[(onlyAfrica$Lat > -10) & (onlyAfrica$Lat < 2) & 
+                      (onlyAfrica$Lon > 20) & (onlyAfrica$Lon < 30), ]
+write.csv(pop14,"pop14.csv")
+
+pop15 <- onlyAfrica[(onlyAfrica$Lat > -10) & (onlyAfrica$Lat < 2) & 
+                      (onlyAfrica$Lon > 30) & (onlyAfrica$Lon < 40), ]
+write.csv(pop15,"pop15.csv")
+
+pop16 <- onlyAfrica[(onlyAfrica$Lat > -20) & (onlyAfrica$Lat < -10) & 
+                      (onlyAfrica$Lon > 20) & (onlyAfrica$Lon < 30), ]
+
+pop17 <- onlyAfrica[(onlyAfrica$Lat > -20) & (onlyAfrica$Lat < -10) & 
+                      (onlyAfrica$Lon > 30) & (onlyAfrica$Lon < 40), ]
+
+pop18 <- onlyAfrica[(onlyAfrica$Lat > -30) & (onlyAfrica$Lat < -20) & 
+                      (onlyAfrica$Lon > 10) & (onlyAfrica$Lon < 20), ]
+
+pop19 <- onlyAfrica[(onlyAfrica$Lat > -30) & (onlyAfrica$Lat < -20) & 
+                      (onlyAfrica$Lon > 20) & (onlyAfrica$Lon < 30), ]
+
+pop20 <- onlyAfrica[(onlyAfrica$Lat > -30) & (onlyAfrica$Lat < -20) & 
+                      (onlyAfrica$Lon > 30) & (onlyAfrica$Lon < 40), ]
+
+pop21 <- onlyAfrica[(onlyAfrica$Lat > -40) & (onlyAfrica$Lat < -30) & 
+                      (onlyAfrica$Lon > 20) & (onlyAfrica$Lon < 30), ]
+
+### combined pop
+
+pop16_comb <- rbind(pop16, pop17)
+write.csv(pop16_comb,"pop16.csv")
+
+pop17_comb <- rbind(pop18, pop21)
+write.csv(pop17_comb,"pop17.csv")
+
+pop18_comb <- rbind(pop19, pop20)
+write.csv(pop18_comb,"pop18.csv")
+```
+
+3. Same for Asia as well
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+library(maps)
+library(tidyverse)
+library(sf)
+library(mapview)
+library(ggplot2)
+
+data <- read.csv("Reseq_accessions_country.csv")
+
+Asia <- data[(data$Lat > 0) & (data$Lat < 40), ]
+SSA <- Asia[(Asia$Lon > 60) & (Asia$Lon < 100), ]
+
+world <- map_data("world")
+head(world)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+tiff("SouthAsia_grids.tiff", width = 6, height = 6, units = 'in', res = 300)
+ggplot() + geom_map(data = world, map = world,aes(long, lat, map_id = region),
+                    color = "black", fill = "white", size = 0.5) +
+  geom_point(data = SSA,size=0.5,color = "red",aes(Lon, Lat),alpha = 1) +
+  coord_sf(xlim = c(60, 100), ylim = c(0, 40), expand = FALSE)+  
+  theme(panel.grid = element_line(color = "#8ccde3",size = 0.75,linetype = 2),
+        panel.ontop = TRUE, panel.background = element_rect(color = NA, fill = NA))
+dev.off()
+
+###populations
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq/fst populations")
+###Divide based on east and west
+
+SSA_west <- SSA[(SSA$Lat > 5) & (SSA$Lat < 35) & 
+                  (SSA$Lon > 70) & (SSA$Lon < 76.5), ]
+write.csv(SSA_west,"pop19.csv")
+
+SSA_east <- SSA[(SSA$Lat > 5) & (SSA$Lat < 35) & 
+                  (SSA$Lon > 76.5) & (SSA$Lon < 85), ]
+write.csv(SSA_east,"pop20.csv")
+
+```
+### Estimate Fst with VCF tools
+
+Upload the text files contaning accessions of each pop without the column name, then run vcftools. 
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+
+WORKINGDIR=/storage/home/azd6024/work/fst_reseq/fst
+cd $WORKINGDIR
+
+vcftools --gzvcf Sorghum_reseq_SNP.vcf.gz --weir-fst-pop pop1.txt --weir-fst-pop pop2.txt --weir-fst-pop pop3.txt --weir-fst-pop pop4.txt --weir-fst-pop pop5.txt --weir-fst-pop pop6.txt --weir-fst-pop pop7.txt --weir-fst-pop pop8.txt --weir-fst-pop pop9.txt --weir-fst-pop pop10.txt --weir-fst-pop pop11.txt --weir-fst-pop pop12.txt --weir-fst-pop pop13.txt --weir-fst-pop pop14.txt --weir-fst-pop pop15.txt --weir-fst-pop pop16.txt --weir-fst-pop pop17.txt --weir-fst-pop pop18.txt --weir-fst-pop pop19.txt --weir-fst-pop pop20.txt --fst-window-size 1000 --out reseq20pop1kb_Fst
+```
+
+### Find Fst of your gene of interest 
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+library(ggplot2)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(tidyr)
+
+Fst <- read.csv("FST_20pop_reseq_1kbWindow.csv")
+head(Fst)
+
+data <- Fst[1:652922,]
+data <- data %>% drop_na()
+chr = substring(data$CHROM, 4)
+data[, "CHROM"] <- chr
+##Weir's $F_ST$ can give values <0 so we reset to 0
+data$WEIGHTED_FST[which(data$WEIGHTED_FST<0)]=0
+head(data)
+
+
+chr4_Fst <- subset(data, CHROM=="04")
+head(chr4_Fst)
+Chr4_49813813_50kb_Fst <- subset(chr4_Fst, BIN_START >49763813 & BIN_START<49863813)
+
+Chr4_49813813_50kb_Fst$Fst_round <- round(Chr4_49813813_50kb_Fst$WEIGHTED_FST, digits = 2)
+head(Chr4_49813813_50kb_Fst)
+
+Chr4_49813813_50kb_Fst$BIN_START=Chr4_49813813_50kb_Fst$BIN_START/1E6
+Chr4_49813813_50kb_Fst$BIN_END=Chr4_49813813_50kb_Fst$BIN_END/1E6
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+tiff("Chr4_49813813_50kb_Fst.tiff", width = 5, height = 5, units = 'in', res = 300)
+par(family="Times")
+par(pty="s")
+with(Chr4_49813813_50kb_Fst, plot(BIN_START, Fst_round, pch=20,lwd=4,xaxt="n",col="black", yaxt = "n", main=NA, ylab= expression(F[ST]), xlab="Mb Chromosome"))
+axis(side = 1, at=seq(min(Chr4_49813813_50kb_Fst$BIN_START), max(Chr4_49813813_50kb_Fst$BIN_START), by = (max(Chr4_49813813_50kb_Fst$BIN_START)-min(Chr4_49813813_50kb_Fst$BIN_START))/3),las=1,cex.axis = 1)
+axis(side = 2, at=seq(min(Chr4_49813813_50kb_Fst$Fst_round), max(Chr4_49813813_50kb_Fst$Fst_round), by = 0.11),las=1,cex.axis = 1)
+abline(v = 49.813813, col = "red", lwd = 2, lty = 2)
+dev.off()
+```
+
+### Find locus with high Fst
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+library(ggplot2)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(tidyr)
+
+###Top 10 high fst locus
+Fst <- read.csv("FST_20pop_reseq_1kbWindow.csv")
+head(Fst)
+
+data <- Fst[1:652922,]
+data <- data %>% drop_na()
+chr = substring(data$CHROM, 4)
+data[, "CHROM"] <- chr
+##Weir's $F_ST$ can give values <0 so we reset to 0
+data$WEIGHTED_FST[which(data$WEIGHTED_FST<0)]=0
+head(data)
+top10_highFst <- data[with(data,order(-WEIGHTED_FST)),]
+top10_highFst <- top10_highFst[1:10,1:5]
+top10_highFst_round <- round(top10_highFst$WEIGHTED_FST, digits = 3)
+top10_highFst[, "WEIGHTED_FST"] <- top10_highFst_round
+head(top10_highFst)
+
+#write.table(top10_highFst, "top10_highFst.csv", sep=",")
+
+top10_highFst <- read.csv("top10_highFst.csv")
+dim(top10_highFst)
+head(top10_highFst)
+
+#export table
+library("gridExtra")
+tiff("top10Fst_locus.tiff", width = 8, height = 5, units = 'in', res = 300)
+par(family="Times")
+grid.table(top10_highFst)
+dev.off()
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+#list.files()
+library(tidyverse)
+#library(ggtext)
+library(normentR)
+library(dplyr)
+library(fuzzyjoin)
+
+Sorghum_annot <- read.delim("Sbicolor_454_v3.1.1.gene.gff3", header=T, comment.char="#")
+head(Sorghum_annot)
+names(Sorghum_annot)[9]<-paste("Gene_name")
+names(Sorghum_annot)[4]<-paste("start")
+names(Sorghum_annot)[5]<-paste("stop")
+names(Sorghum_annot)[7]<-paste("direction")
+names(Sorghum_annot)[1]<-paste("chr")
+Sorghum_annot = within(Sorghum_annot, rm(.,..1,phytozomev12))
+head(Sorghum_annot)
+
+chr_new = substring(Sorghum_annot$chr, 4)
+#replace column
+Sorghum_annot[, "chr"] <- chr_new
+head(Sorghum_annot)
+dim(Sorghum_annot)
+
+#Sorghum_annot[389067,1]
+#Sorghum_annot[389068,1]
+
+chr10_Sorghum_annot <- Sorghum_annot[Sorghum_annot$chr == '10',]
+dim(chr10_Sorghum_annot)
+chr1_9_Sorghum_annot <- Sorghum_annot[1:389067,]
+chr1_9_Sorghum_annot_1 = substring(chr1_9_Sorghum_annot$chr, 2)
+head(chr1_9_Sorghum_annot_1)
+
+chr1_9_Sorghum_annot[, "chr"] <- chr1_9_Sorghum_annot_1
+head(chr1_9_Sorghum_annot)
+dim(chr1_9_Sorghum_annot)
+
+
+Sbicolor_annot <- rbind(chr1_9_Sorghum_annot,chr10_Sorghum_annot)
+head(Sbicolor_annot)
+dim(Sbicolor_annot)
+
+#adding these 2 colums to the dataframe will give you the +/- 2.5 kb window
+Sbicolor_annot$start_5kb <- Sbicolor_annot$start - 2500
+Sbicolor_annot$stop_5kb <- Sbicolor_annot$stop + 2500
+head(Sbicolor_annot)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+list.files()
+
+library(dplyr)
+library(fuzzyjoin)
+gwas_annot <- fuzzy_left_join(top10_highFst, Sbicolor_annot, by=c("BIN_START"="start_5kb", "BIN_START"="stop_5kb", "chr"="chr"),
+                              match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,Chromosome,BIN_START,BIN_END,N_VARIANTS,WEIGHTED_FST,start,stop,direction)
+
+
+gwas_annot_split <- data.frame(do.call("rbind", strsplit(as.character(gwas_annot$Gene_name), ";", fixed = TRUE)))
+pacId <- sub('pacid=', '', gwas_annot_split$X3)
+head(gwas_annot_split)
+
+gwas_annot_1 <- cbind (pacId,gwas_annot)
+gwas_annot_1 = within(gwas_annot_1, rm(Gene_name))
+head(gwas_annot_1)
+gwas_annot_2 <- gwas_annot_1[- grep("ancestorIdentifier", gwas_annot_1$pacId),]
+head(gwas_annot_2)
+
+library(data.table)
+gwas_annot_3 <- unique(setDT(gwas_annot_2)[order(BIN_START, -BIN_START)], by = "BIN_START")
+dim(gwas_annot_3)
+head(gwas_annot_3)
+
+library(tidyr)
+gwas_annot <- gwas_annot_3 %>% drop_na()
+dim(gwas_annot)
+head(gwas_annot)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Fst_tajimasD_reseq")
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot, by = "pacId")
+dim(annotation_Loc)
+head(annotation_Loc)
+
+write.table(annotation_Loc, "1. Annotation_top10_highFst_final.csv", sep=",")
+```
+
+
 
