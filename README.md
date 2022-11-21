@@ -3,9 +3,9 @@
 ## Table of contents    
 * [Page 1: 2022-25-06](#id-section1). Chapter 1: Getting resequencing data (by Aayudh)
 
-* [Page 2: 2022-30-06](#id-section2). Chapter 2: SnpEff (by Luke)
+* [Page 2: 2022-30-06](#id-section2). Chapter 2: Running Beagle (by Luke) 
 
-* [Page 3 2022-30-06](#id-section3). Chapter 3: Running Beagle (by Luke) 
+* [Page 3 2022-30-06](#id-section3). Chapter 3: SnpEff (by Luke) 
 
 * [Page 4 2022-08-08](#id-section4). Chapter 4: Environmental GWAS (by Aayudh)
 
