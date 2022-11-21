@@ -15,13 +15,14 @@
 
 * [Page 7 2022-02-08](#id-section7). Chapeter 7: Indels association (by Aayudh)
 
-* [Page 8 2020-12-16](#id-section8). Chapeter 8: GWAS using vcftools
+* [Page 8 2022-12-09](#id-section8). Chapeter 8: GWAS using vcftools
 
-* [Page 9 2020-12-22](#id-section9). Chapter 9: Tajima's D and Fst
+* [Page 9 2022-12-10](#id-section9). Chapter 9: Tajima's D and Fst
 
-* [Page 10 2020-12-22](#id-section10). Chapter 10: Fst estimation of Sorghum Reseq 
+* [Page 10 2022-24-10](#id-section10). Chapter 10: Fst estimation of Sorghum Reseq 
 
-* [Page 11 2021-04-06](#id-section11). Chapter11: 
+* [Page 11 2022-21-11](#id-section11). Chapter11: LD decay
+
 * [Page 12 2021-04-06](#id-section12). Chapter12: 
 
 ------
@@ -1960,5 +1961,273 @@ head(annotation_Loc)
 write.table(annotation_Loc, "1. Annotation_top10_highFst_final.csv", sep=",")
 ```
 
+-----
+<div id='id-section11'/>
 
+## Chapter 11: LD Decay 
 
+### Creating genotype file and mapping file
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("/gpfs/group/jrl35/default/aayudh/gwas_reseq")
+
+library(gdsfmt)
+library(SNPRelate)
+
+genofile <- snpgdsOpen('Sorghum_1757g_2ndtry.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+snp.id <- read.gdsn(index.gdsn(genofile, 'snp.id'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.allele <- read.gdsn(index.gdsn(genofile, 'snp.allele'))
+snp.rs.id <- read.gdsn(index.gdsn(genofile, 'snp.rs.id'))
+
+#you can use your traits file to get SNPs only for genotypes with phenotypic data
+#the trait file should have a column 'sample.id' that corresponds to the id in the genofile
+setwd("~/work/preds_all_gwas")
+traits <- data.frame(read.csv('1_ReseqGWAS_traits_revissed_predsALL.csv', header=TRUE))
+head(traits)
+
+#no need to account for LD when getting SNPs for GWAS. 
+mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0.5)
+length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = mySNPs, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+#these lines create the bed file for gemma
+rs <- data.frame(chr = chromosome.id[mySNPs], positions = snp.position[mySNPs])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions), t(mySNPmatrix$genotype))
+
+SNPs_bim[1:4,1:4]
+dim(SNPs_bim)
+length(SNPs_bim)
+
+df <- SNPs_bim[,2:340]
+df [1:4,1:4]
+
+#sommer requires data as -1,0,1
+data_2 <- df - 1
+colnames(data_2) <- mySNPmatrix$sample.id
+data_2 [1:4,1:4]
+
+Accessions <- as.data.frame(SNPs_bim[,1])
+names(Accessions)[1]<-paste("Accessions")
+
+data_3 <- cbind(Accessions,data_2)
+data_3[1:4,1:4]
+
+# transpose all but the first column (name)
+n <- data_3$Accessions
+df.aree <- as.data.frame(t(data_3[,-1]))
+
+colnames(df.aree) <- n
+df.aree[1:4,1:4]
+
+geno_reseq <- tibble::rownames_to_column(df.aree, "Accessions")
+
+geno_reseq[1:4,1:4]
+dim(geno_reseq)
+
+##createing genofile
+geno_reseq_HBP=df.aree[geno_reseq$Accessions,]
+geno_reseq_HBP[1:4,1:4]
+dim(geno_reseq_HBP)
+
+##Now SNP info extraction
+map_reseq <- as.data.frame(SNPs_bim$paste0..rs_...rs.chr..._...rs.positions.)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(map_reseq$`SNPs_bim$paste0..rs_...rs.chr..._...rs.positions.`), "_", fixed = TRUE)))
+head(rs_split)
+
+rs_split[, "X1"] <- map_reseq$`SNPs_bim$paste0..rs_...rs.chr..._...rs.positions.`
+
+names(rs_split)[1]<-paste("Locus")
+names(rs_split)[2]<-paste("LG")
+names(rs_split)[3]<-paste("Position")
+
+head(rs_split)
+rs_split$Position <- as.numeric(as.character(rs_split$Position)) 
+rs_split[, "Position"]=rs_split$Position/1E6
+
+rs_split$LG <- as.numeric(as.character(rs_split$LG))
+head(rs_split)
+
+map_reseq <- rs_split
+head(map_reseq)
+dim(map_reseq)
+summary(map_reseq)
+
+mapCP <- map_reseq
+dim(mapCP)
+#### just chromosome 4 (change according to your snp hit)
+mapCP <- mapCP[mapCP$LG == '4',]
+head(mapCP)
+summary(mapCP)
+
+##taking 1mb in both direction from the SNP
+mapCP_5mb <- subset(mapCP, Position >48.81 & Position<50.81)
+head(mapCP_5mb)
+tail(mapCP_5mb)
+dim(mapCP_5mb)
+
+setwd("/storage/home/azd6024/work/linkage_D")
+write.csv(mapCP_5mb,"mapCP_5mb.csv")
+
+##genofile
+CPgeno <- geno_reseq_HBP
+CPgeno [1:4,1:4]
+dim(CPgeno)
+
+#find what column label is what number in the genofile. You have to make sure the genofile also
+#in same length as the map file
+head(mapCP_5mb)
+#take top of the head SNP name
+match("rs_04_48810669",names(geno_reseq_HBP))
+tail(mapCP_5mb)
+#take bottom of the tail SNP name
+match("rs_04_50809956",names(geno_reseq_HBP))
+
+CPgeno_5mb <- CPgeno[,match("rs_04_48810669",names(geno_reseq_HBP)):match("rs_04_50809956",names(geno_reseq_HBP))]
+dim(CPgeno_5mb)
+
+write.csv(CPgeno_5mb,"CPgeno_5mb.csv")
+```
+
+### Running Sommer
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+##LD_decay
+# https://rdrr.io/cran/sommer/man/LD.decay.html  
+
+library(sommer)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(cowplot)
+library(data.table)
+
+CPgeno_5mb <- read.csv("CPgeno_5mb.csv")
+CPgeno_5mb <- CPgeno_5mb [,2:33457]
+
+mapCP_5mb <- read.csv("mapCP_5mb.csv")
+head(mapCP_5mb)
+dim(mapCP_5mb)
+
+#running sommer
+res <- LD.decay(CPgeno_5mb, mapCP_5mb,silent=FALSE,unlinked=FALSE)
+names(res)
+```
+
+$resp a list with 3 elements; "by.LG", "all.LG", "LDM". The first element (by.LG) is a list with as
+many elements as chromosomes where each contains a matrix with 3 columns, the distance,
+the r2 value, and the p-value associated to the chi-square test for disequilibrium. The second
+element (all.LG) has a big matrix with distance, r2 values and p-values, for each point from
+all chromosomes in a single data.frame. The third element (LDM) is the matrix of linkage
+disequilibrium between pairs of markers.
+If unlinked is selected the program should return the gamma percentile interchromosomal LD
+(r2) for each chromosome and average.
+
+### Creating LDM matrix and plotting
+
+```
+LDM <- res$LDM
+df <- LDM[[4]]
+LDM_matrix <- as.data.frame(df)
+dim(LDM_matrix)
+
+write.csv(LDM_matrix, "LDM_matrix_reseq_chr4_2mb.csv")
+
+LDM_matrix <- read.csv("LDM_matrix_reseq_chr4_2mb.csv")
+LDM_matrix[1:4,1:4]
+
+#ur SNP of interest
+match("rs_04_49813813",names(LDM_matrix))
+SNP_centered <- LDM_matrix[,match("rs_04_49813813",names(LDM_matrix))]
+SNP_main <- as.data.frame(SNP_centered)
+SNP_rows <- LDM_matrix[,1]
+SNP_full <- cbind(SNP_rows,SNP_main)
+head(SNP_full)
+
+write.csv(SNP_full,"SNP_full.csv")
+
+library(ggplot2)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/LD")
+list.files()
+data <- read.csv("1.PBS1_SNP_full.csv")
+head(data)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(data$SNP_rows), "_", fixed = TRUE)))
+head(rs_split)
+
+rs_split[, "X1"] <- data$SNP_rows
+
+names(rs_split)[1]<-paste("SNP")
+names(rs_split)[2]<-paste("chr")
+names(rs_split)[3]<-paste("Position")
+
+head(rs_split)
+rs_split$Position <- as.numeric(as.character(rs_split$Position)) 
+rs_split[, "Position"]=rs_split$Position/1E6
+head(rs_split)
+
+SNP_LDM <- cbind(rs_split,data$SNP_centered)
+names(SNP_LDM)[4]<-paste("r2")
+head(SNP_LDM)
+
+SNP_LDM <- 
+
+library(ggplot2)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/LD")
+tiff("LDM_Reseq_chr4_PBS1_2mb_ggpplot.tiff", width = 5, height = 5, units = 'in', res = 300)
+ggplot()+
+  geom_point(aes(x=SNP_LDM$Position,y=SNP_LDM$r2),size=0.4,colour="cadetblue")+
+  labs(x="Position (Megabases)",y=expression(LD~(r^{2})))+
+  geom_smooth(aes(x=SNP_LDM$Position,y=SNP_LDM$r2),se=FALSE, method="loess", span=0.75)+
+  #scale_y_continuous(breaks=seq(0,1,.2))+
+  scale_x_continuous(breaks=seq(48.8,50.8,0.5))+
+  theme_classic() +
+  geom_vline(xintercept = 49.813813, linetype="dashed", color = "red", size=1)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16))
+dev.off()
+SNP_LDM_r2 <- SNP_LDM[which(SNP_LDM$r2 > .15),]
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/LD")
+tiff("LDM_r2_.15_Reseq_chr4_PBS1_2mb_ggpplot.tiff", width = 5, height = 5, units = 'in', res = 300)
+ggplot()+
+  geom_point(aes(x=SNP_LDM_r2$Position,y=SNP_LDM_r2$r2),size=0.4,colour="cadetblue")+
+  labs(x="Position (Megabases)",y=expression(LD~(r^{2})))+
+  geom_smooth(aes(x=SNP_LDM_r2$Position,y=SNP_LDM_r2$r2),se=FALSE, method="loess", span=0.75)+
+  scale_y_continuous(breaks=seq(0,1,.25))+
+  scale_x_continuous(breaks=seq(48.8,50.8,0.5))+
+  theme_classic() +
+  geom_vline(xintercept = 49.813813, linetype="dashed", color = "red", size=1)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16))
+dev.off()
+```
