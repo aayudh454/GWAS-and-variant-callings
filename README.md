@@ -1468,6 +1468,11 @@ vcftools --help
  ```
 **1. Getting info with vcf.gz file**
 
+see what's in it-
+```
+zcat Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined.vcf.gz | head -n 11
+```
+
 Create a .sh file (vi test.sh) with a code embedded to run it in server
 
 ```
