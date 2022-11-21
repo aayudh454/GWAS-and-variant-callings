@@ -17,7 +17,7 @@
 
 * [Page 8 2022-12-09](#id-section8). Chapeter 8: GWAS using vcftools
 
-* [Page 9 2022-12-10](#id-section9). Chapter 9: Tajima's D and Fst
+* [Page 9 2022-12-10](#id-section9). Chapter 9: Tajima's D 
 
 * [Page 10 2022-24-10](#id-section10). Chapter 10: Fst estimation of Sorghum Reseq 
 
@@ -1493,7 +1493,7 @@ After filtering, kept 64618398 out of a possible **64618398 Sites**
 -----
 <div id='id-section9'/>
 
-## Chapter 9: Tajima's D and Fst
+## Chapter 9: Tajima's D
 
 ### Tajima's D for reseq Sorghum dataset
 
