@@ -2304,3 +2304,13 @@ ggplot()+
 dev.off()
 ```
 
+-----
+<div id='id-section12'/>
+
+## Chapter 12: Putative promoter analysis 
+
+### Make a data file first
+
+
+
+
