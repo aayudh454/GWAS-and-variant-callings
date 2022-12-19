@@ -2236,3 +2236,71 @@ ggplot()+
         axis.text.y=element_text(colour="black", size = 16))
 dev.off()
 ```
+### Plotting with gene length 800kb region
+
+```
+
+
+list.files()
+sbicolor <- read.csv("Sbicolor_454_v3.1.1.gene.csv")
+head(sbicolor)
+sbicolor_chr4 <- subset(sbicolor, chr == "Chr04")
+head(sbicolor_chr4)
+
+annot_300kb <- subset(sbicolor_chr4, sbicolor_chr4$start > 49110181 & sbicolor_chr4$start < 49863813)
+head(annot_300kb)
+genes <- subset(annot_300kb, gene == "gene")
+genes$size <- genes$stop - genes$start
+genes$position <- genes$start + (genes$size/2)
+genes[, "position"]=genes$position/1E3
+genes[, "size"]=genes$size/1E3
+head(genes)
+
+write.csv(genes, "geneinfo_49010-49838.csv")
+
+genes <- read.csv("geneinfo_49010-49838.csv")
+
+library(ggplot2)
+tiff("genes_pbs1near.tiff", width = 13, height = 3.5, units = 'in', res = 300)
+ggplot(genes, aes(x=position,y=size))+
+  geom_bar(stat="identity", width=4,color="coral4")+
+  scale_x_continuous(breaks=seq(49110,49838,182))+
+  scale_y_continuous(breaks=seq(0,23,7.6))+
+  labs(x=NULL,y="Gene length (kb)")+
+  theme_classic() +
+  geom_vline(xintercept = 49813.813, linetype="dashed", color = "red", size=0.5)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.text.y=element_text(colour="black", size = 16))
+dev.off()
+
+###Now more300kb far
+#004G156732=49513181-49516616
+#004G156800=#49519315-49526466
+##49511622	49512961	+	ID=Sobic.004G156666.v3.2;Name=Sobic.004G156666
+#49541926
+haplotype_block <- subset(SNP_LDM_r2,  SNP_LDM_r2$Position > 49110 & SNP_LDM_r2$Position < 49838.813) 
+head(haplotype_block)
+
+library(ggplot2)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/LD")
+tiff("700_kbfromSNP.tiff", width = 13, height = 3.5, units = 'in', res = 300)
+ggplot()+
+  geom_point(aes(x=haplotype_block$Position,y=haplotype_block$r2),size=1,colour="cadetblue")+
+  labs(x="Position (kb)",y=expression(LD~(r^{2})))+
+  geom_smooth(aes(x=haplotype_block$Position,y=haplotype_block$r2),se=FALSE, method="loess", span=0.75)+
+  #scale_y_continuous(breaks=seq(0,1,.2))+
+  scale_x_continuous(breaks=seq(49110,49838,182))+
+  theme_classic() +
+  geom_vline(xintercept = 49813.813, linetype="dashed", color = "red", size=0.5)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+dev.off()
+```
+
