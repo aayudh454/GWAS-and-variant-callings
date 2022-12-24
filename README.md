@@ -2317,30 +2317,19 @@ list.files()
 Chr10corr <- read.csv("Reseq_preds_all_chr10_corrected.csv", header=T)
 head(Chr10corr)
 
-data_chr4<- subset(Chr10corr, chr=="4")
-head(data_chr4)
+data_p0.0005<- subset(Chr10corr, p_wald < 0.0005)
+write.csv(data_p0.0005,"Entire_genome_Reseq_preds_all_gemma_p0.0005.csv")
 
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Putative promoter regions")
-#write.csv(data_chr4,"chr4_Reseq_preds_all_gemma.csv")
-data <- read.csv("chr4_Reseq_preds_all_gemma.csv")
-head(data)
-
-data_chr4_p0.05<- subset(data, p_wald < 0.05)
-#write.csv(data_chr4_p0.05,"chr4_Reseq_preds_all_gemma_p0.05.csv")
-
-data_chr4_p0.01<- subset(data, p_wald < 0.01)
-write.csv(data_chr4_p0.01,"chr4_Reseq_preds_all_gemma_p0.01.csv")
-
 sbicolor <- read.csv("Sbicolor_454_v3.1.1.gene.csv")
 head(sbicolor)
-sbicolor_chr4<- subset(sbicolor, chr=="Chr04")
-#write.csv(sbicolor_chr4,"chr4_genes.csv")
-genes <- read.csv("chr4_genes.csv")
-head(genes)
+dim(sbicolor)
+##sbicolor_chr10<- subset(sbicolor, chr=="Chr10"); just need to know end of chr10 as we need to remove supers
+sbicolor <- sbicolor [1:425313,]
 
 ##+stand
-genes_plus <- subset(genes, direction=="+")
-genes_minus <- subset(genes, direction=="-")
+genes_plus <- subset(sbicolor, direction=="+")
+genes_minus <- subset(sbicolor, direction=="-")
 
 ##CDS
 genes_plus_CDS <- subset(genes_plus, gene=="CDS")
@@ -2355,10 +2344,79 @@ chr_new = substring(genes_plus_CDS$chr, 5)
 genes_plus_CDS[, "chr"] <- chr_new
 head(genes_plus_CDS)
 
-#write.csv(genes_plus_CDS,"genes_plus_CDS.csv")
+#write.csv(genes_plus_CDS,"Entire_genome_plus_strand_CDS.csv")
 
-top1000 <- data[1:1000,]
-#write.csv(top1000,"top1000_predsALL.csv")
+###Now the gene_minus starnd 
+##3kb region
+genes_minus_CDS$start_3kb <- genes_minus_CDS$start - 3000
+genes_minus_CDS$stop_3kb <- genes_minus_CDS$stop + 3000
+
+chr_new = substring(genes_minus_CDS$chr, 5)
+#replace column
+genes_minus_CDS[, "chr"] <- chr_new
+head(genes_minus_CDS)
+
+##write.csv(genes_minus_CDS,"Entire_genome_minus_strand_CDS.csv")
+```
+
+
+##this part should be in server-
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("~/work/promoter_analysis")
+
+genes_minus_CDS <- read.csv("Entire_genome_minus_strand_CDS.csv")
+
+entire_genome <- read.csv("Entire_genome_Reseq_preds_all_gemma_p0.0005.csv")
+
+library(dplyr)
+library(fuzzyjoin)
+gwas_annot <- fuzzy_left_join(entire_genome, genes_minus_CDS, by=c("ps"="start_3kb", "ps"="stop_3kb", "chr"="chr"),
+                              match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,af,p_wald,start,stop,direction)
+
+genes_minus_CDS_pwald <- na.omit(gwas_annot)
+genes_minus_CDS_pwald$snpsite <- genes_minus_CDS_pwald$stop - genes_minus_CDS_pwald$ps
+head(genes_minus_CDS_pwald)
+
+write.csv(genes_minus_CDS_pwald, "1.Entire_genome_MINUS_promoter.csv")
+
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("~/work/promoter_analysis")
+
+genes_plus_CDS <- read.csv("Entire_genome_plus_strand_CDS.csv")
+
+entire_genome <- read.csv("Entire_genome_Reseq_preds_all_gemma_p0.0005.csv")
+
+library(dplyr)
+library(fuzzyjoin)
+gwas_annot <- fuzzy_left_join(entire_genome, genes_plus_CDS, by=c("ps"="start_3kb", "ps"="stop_3kb", "chr"="chr"),
+                              match_fun=list(`>=`, `<=`, `==`)) %>% select(Gene_name,ps,rs,af,p_wald,start,stop,direction)
+
+genes_plus_CDS_pwald <- na.omit(gwas_annot)
+genes_plus_CDS_pwald$snpsite <- genes_plus_CDS_pwald$ps - genes_plus_CDS_pwald$start
+head(genes_plus_CDS_pwald)
+
+write.csv(genes_plus_CDS_pwald, "1.Entire_genome_PLUS_promoter.csv")
+
 ```
 
 
