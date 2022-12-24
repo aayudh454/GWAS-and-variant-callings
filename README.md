@@ -2390,18 +2390,7 @@ head(genes_minus_CDS_pwald)
 
 write.csv(genes_minus_CDS_pwald, "1.Entire_genome_MINUS_promoter.csv")
 
-#!/usr/bin/env Rscript
-
-#PBS -l nodes=1:ppn=8
-#PBS -l walltime=12:00:00
-#PBS -l pmem=24gb
-#PBS -M azd6024@psu.edu
-#PBS -A open
-#PBS -j oe
-#PBS -m abe
-
-setwd("~/work/promoter_analysis")
-
+###PLUS STRAND----------------------------
 genes_plus_CDS <- read.csv("Entire_genome_plus_strand_CDS.csv")
 
 entire_genome <- read.csv("Entire_genome_Reseq_preds_all_gemma_p0.0005.csv")
