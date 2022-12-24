@@ -2311,6 +2311,54 @@ dev.off()
 
 ### Make a data file first
 
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/manhattan plot")
+list.files()
+Chr10corr <- read.csv("Reseq_preds_all_chr10_corrected.csv", header=T)
+head(Chr10corr)
 
+data_chr4<- subset(Chr10corr, chr=="4")
+head(data_chr4)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Putative promoter regions")
+#write.csv(data_chr4,"chr4_Reseq_preds_all_gemma.csv")
+data <- read.csv("chr4_Reseq_preds_all_gemma.csv")
+head(data)
+
+data_chr4_p0.05<- subset(data, p_wald < 0.05)
+#write.csv(data_chr4_p0.05,"chr4_Reseq_preds_all_gemma_p0.05.csv")
+
+data_chr4_p0.01<- subset(data, p_wald < 0.01)
+write.csv(data_chr4_p0.01,"chr4_Reseq_preds_all_gemma_p0.01.csv")
+
+sbicolor <- read.csv("Sbicolor_454_v3.1.1.gene.csv")
+head(sbicolor)
+sbicolor_chr4<- subset(sbicolor, chr=="Chr04")
+#write.csv(sbicolor_chr4,"chr4_genes.csv")
+genes <- read.csv("chr4_genes.csv")
+head(genes)
+
+##+stand
+genes_plus <- subset(genes, direction=="+")
+genes_minus <- subset(genes, direction=="-")
+
+##CDS
+genes_plus_CDS <- subset(genes_plus, gene=="CDS")
+genes_minus_CDS <- subset(genes_minus, gene=="CDS")
+
+##3kb region
+genes_plus_CDS$start_3kb <- genes_plus_CDS$start - 3000
+genes_plus_CDS$stop_3kb <- genes_plus_CDS$stop + 3000
+
+chr_new = substring(genes_plus_CDS$chr, 5)
+#replace column
+genes_plus_CDS[, "chr"] <- chr_new
+head(genes_plus_CDS)
+
+#write.csv(genes_plus_CDS,"genes_plus_CDS.csv")
+
+top1000 <- data[1:1000,]
+#write.csv(top1000,"top1000_predsALL.csv")
+```
 
 
