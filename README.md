@@ -68,7 +68,11 @@ cd /data/Sorghum/Hu_GBS_2019/
 ```
 /gpfs/group/jrl35/default/aayudh
 ```
-
+use recent R version in ICDS
+```
+module use /gpfs/group/RISE/sw7/modules
+module load r/4.1.2
+```
 -----
 <div id='id-section2'/>
 
