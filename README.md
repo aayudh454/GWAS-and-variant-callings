@@ -73,6 +73,11 @@ use recent R version in ICDS
 module use /gpfs/group/RISE/sw7/modules
 module load r/4.1.2
 ```
+
+Delete a job
+```
+qdel 38423184 
+```
 -----
 <div id='id-section2'/>
 
