@@ -2424,4 +2424,404 @@ write.csv(genes_plus_CDS_pwald, "1.Entire_genome_PLUS_promoter.csv")
 
 ## Chapter 13: ABA analysis 
 
-### Make a data file first
+### Finding colocalized SNPs
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+list.files()
+ABA <- read.csv("Annotation (ABA).csv")
+head(ABA)
+
+sbicolor <- read.csv("Sbicolor_454_v3.1.1.gene.csv")
+head(sbicolor)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(sbicolor$Gene_name), ";", fixed = TRUE)))
+head(rs_split)
+
+rs_split1 <- data.frame(do.call("rbind", strsplit(as.character(rs_split$X2), "=", fixed = TRUE)))
+head(rs_split1)
+
+rs_split2 <- data.frame(do.call("rbind", strsplit(as.character(rs_split1$X2), ".", fixed = TRUE)))
+head(rs_split2)
+
+sbicolor$sobicID = paste(rs_split2$X1, rs_split2$X2, sep=".")
+head(sbicolor)
+
+sbicolor = within(sbicolor, rm(phytozomev12,Gene_name))
+head(sbicolor)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+#write.csv(sbicolor,"Sbicolor_454_v3.1.1.gene_sobicIDs.csv")
+
+Sorghum_sobics <- read.csv("Sbicolor_454_v3.1.1.gene_sobicIDs.csv")
+head(Sorghum_sobics)
+
+Sorghum_sobics_onlyGene<- subset(Sorghum_sobics, gene=="gene")
+
+ABA_start_stop <- merge(ABA, Sorghum_sobics_onlyGene, by ="sobicID")
+head(ABA_start_stop)
+
+ABA_start_stop$start_10kb <- ABA_start_stop$start - 10000
+ABA_start_stop$stop_10kb <- ABA_start_stop$stop + 10000
+
+chr_new = substring(ABA_start_stop$chr, 4)
+#replace column
+ABA_start_stop[, "chr"] <- as.numeric(chr_new)
+head(ABA_start_stop)
+
+summary(ABA_start_stop)
+
+###Water stress Vegetative GWAS
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/manhattan plot")
+list.files()
+Water_stress_veg <- read.csv("Reseq_water_veg_avg_fdr.csv", header=T)
+head(Water_stress_veg)
+Water_stress_veg <- Water_stress_veg[order(Water_stress_veg$p_wald),]
+head(Water_stress_veg)
+
+Water_stress_veg_sig <- subset(Water_stress_veg , p_wald < 0.001)
+head(Water_stress_veg_sig)
+
+##Sig SNPs gemma output
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+#write.csv(Water_stress_veg_sig ,"Water_stress_veg_sig_p_001.csv")
+
+Water_stress_veg_sig <- read.csv("Water_stress_veg_sig_p_001.csv")
+head(Water_stress_veg_sig)
+summary(Water_stress_veg_sig)
+
+library(dplyr)
+library(fuzzyjoin)
+gwas_annot <- fuzzy_left_join(Water_stress_veg_sig, ABA_start_stop, by=c("ps"="start_10kb", "ps"="stop_10kb", "chr"="chr"),
+                              match_fun=list(`>=`, `<=`, `==`)) %>% select(sobicID,ps,rs,af,p_wald,start,stop,direction,Pathway..species.)
+
+head(gwas_annot)
+
+gwas_annot <- na.omit(gwas_annot)
+head(gwas_annot)
+dim(gwas_annot)
+gwas_annot$logp <- -log10(gwas_annot$p_wald)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+write.csv(gwas_annot,"ABA.gene_sobicIDs_SNP_cyclesoutput.csv")
+
+gwas_annot <- read.csv("ABA.gene_sobicIDs_SNP_cyclesoutput.csv")
+head(gwas_annot)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/Annotation")
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+names(Sorghum_mdata)[2]<-paste("sobicID")
+
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot, by = "sobicID")
+dim(annotation_Loc)
+head(annotation_Loc)
+
+library(data.table)
+annotation_Loc_1 <- unique(setDT(annotation_Loc)[order(rs, -rs)], by = "rs")
+dim(annotation_Loc_1)
+head(annotation_Loc_1)
+annotation_Loc_2 <- annotation_Loc_1[order(annotation_Loc_1$p_wald),]
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+#write.csv(annotation_Loc_2,"1.Cycles_ABA_final.csv")
+
+gwas_annot <- read.csv("1.Cycles_ABA_final.csv")
+head(gwas_annot)
+
+##arrange chromosome wise
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(gwas_annot$rs), "_", fixed = TRUE)))
+head(rs_split)
+
+gwas_annot$chr <- rs_split$X2
+
+gwas_annot_2 <- gwas_annot[order(gwas_annot$chr),]
+head(gwas_annot_2)
+
+###Other plotting style
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(ggplot2)
+
+sig_data <- gwas_annot_2 %>% 
+  subset(p_wald < 0.05)
+notsig_data <- gwas_annot_2 %>% 
+  subset(p_wald >= 0.0001) %>%
+  group_by(chr) %>% 
+  sample_frac(0.1)
+gwas_data <- bind_rows(sig_data, notsig_data)
+
+data_cum <- gwas_data %>% 
+  group_by(chr) %>% 
+  summarise(max_bp = max(ps)) %>% 
+  mutate(bp_add = lag(cumsum(max_bp), default = 0)) %>% 
+  select(chr, bp_add)
+
+gwas_data <- gwas_data %>% 
+  inner_join(data_cum, by = "chr") %>% 
+  mutate(bp_cum = ps + bp_add)
+
+axis_set <- gwas_data %>% 
+  group_by(chr) %>% 
+  summarize(center = mean(bp_cum))
+
+ylim <- gwas_data %>% 
+  filter(p_wald == min(p_wald)) %>% 
+  mutate(ylim = abs(floor(log10(p_wald))) + 2) %>% 
+  pull(ylim)
+
+fdr_line <- 0.001
+
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+tiff("ABA_cycles_manhattan.tiff", width = 5, height = 5, units = 'in', res = 300)
+ggplot(gwas_data, aes(x = bp_cum, y = -log10(p_wald), color = gwas_data$Pathway..species.
+                      , size = -log10(p_wald))) +
+  geom_hline(yintercept = -log10(fdr_line), color = "red", linetype = "dashed") +
+  geom_point() +
+  scale_y_continuous(breaks=seq(3.0,7.6,1.5))+
+  scale_x_continuous(label = axis_set$chr, breaks = axis_set$center) +
+  scale_color_manual(values = rep(c('slategrey','#00008B', '#8B8B00', "goldenrod"), unique(length(axis_set$chr)))) +
+  scale_size_continuous(range = c(0.5,3)) +
+  labs(x = NULL, y = NULL) + 
+  theme_minimal() +
+  theme( legend.position = "none",text=element_text(size=16, colour = "black",family="Times New Roman"),
+         axis.line = element_line(size=0.5, colour = "black"),
+         panel.grid.major.x = element_blank(),
+         panel.grid.minor.x = element_blank(),
+         panel.grid.major.y = element_blank(),
+         panel.grid.minor.y = element_blank(),
+         axis.text.x = element_text(size = 12, vjust = 0.5, family="Times New Roman"),
+         panel.border = element_rect(color = "black",fill = NA,size = 1))+
+  geom_text_repel(aes(bp_cum, -log10(p_wald),label=gene.symbol),max.overlaps = Inf)
+dev.off()
+
+```
+
+### Zoomed manhattan of CKA2 and HAB1
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/manhattan plot")
+list.files()
+Water_stress_veg <- read.csv("Reseq_water_veg_avg_fdr.csv", header=T)
+head(Water_stress_veg)
+Water_stress_veg <- Water_stress_veg[order(Water_stress_veg$p_wald),]
+head(Water_stress_veg)
+
+##CKA2
+
+data_chr1<- subset(Water_stress_veg, chr=="1")
+head(data_chr1)
+
+
+plus_100kb <- 6246059 + 100000 
+minus_100kb <- 6246059 - 100000 
+
+Chr1_6246059_100kb <- subset(data_chr1, ps >minus_100kb & ps<plus_100kb)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+#write.csv(Chr1_6246059_100kb, "CKA2_100kb.csv")
+
+data<- read.csv("CKA2_100kb.csv", header =T)
+head(data)
+
+
+data$logp <- as.numeric(-log10(data$p_wald))
+data$ps_kb <- data$ps/1000
+summary(data)
+
+head(data)
+data <- na.omit(data)
+  
+#
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+tiff("CKA2_zoomed_100kb.tiff", width = 5, height = 5, units = 'in', res = 300)
+par(family="Times")
+par(pty="s")
+with(data, plot(ps_kb, logp, pch=20,lwd=4,xaxt="n",yaxt="n"))
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(data, logp > 6), points(ps_kb, logp, pch=20, col="red"))
+with(subset(data, logp < 6), points(ps_kb, logp, pch=20, col="black"))
+abline(h = 6, col = "red", lwd = 2, lty = 3) 
+abline(v = 6233.999, col = "blue", lwd = 2, lty = 3) 
+abline(v = 6240.632, col = "blue", lwd = 2, lty = 3) 
+axis(side = 1, at=seq(min(data$ps_kb), max(data$ps_kb), by = 
+                        (max(data$ps_kb)-min(data$ps_kb))/3),las=1,cex.axis = 1)
+axis(side = 2, at=seq(0, 7.6, by = 2.5),las=1,cex.axis = 1)
+dev.off()
+
+
+##HAB1
+data_chr9<- subset(Water_stress_veg, chr=="9")
+head(data_chr9)
+
+
+plus_100kb <- 55867122 + 100000 
+minus_100kb <- 55867122 - 100000 
+
+chr9_55867122_100kb <- subset(data_chr9, ps >minus_100kb & ps<plus_100kb)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+#write.csv(chr9_55867122_100kb, "HAB1_100kb.csv")
+
+data1<- read.csv("HAB1_100kb.csv", header =T)
+head(data1)
+
+data1$logp <- as.numeric(-log10(data1$p_wald))
+data1$ps_kb <- data1$ps/1000
+summary(data1)
+
+head(data1)
+data1 <- na.omit(data1)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+tiff("HAB1_zoomed_100kb.tiff", width = 5, height = 5, units = 'in', res = 300)
+par(family="Times")
+par(pty="s")
+with(data1, plot(ps_kb, logp, pch=20,lwd=4,xaxt="n",yaxt="n"))
+# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
+with(subset(data1, logp > 6), points(ps_kb, logp, pch=20, col="red"))
+with(subset(data1, logp < 6), points(ps_kb, logp, pch=20, col="black"))
+abline(h = 6, col = "red", lwd = 2, lty = 3) 
+abline(v = 55861.006, col = "blue", lwd = 2, lty = 3) 
+abline(v = 55863.087, col = "blue", lwd = 2, lty = 3) 
+axis(side = 1, at=seq(min(data1$ps_kb), max(data1$ps_kb), by = (max(data1$ps_kb)-min(data1$ps_kb))/3),las=1,cex.axis = 1)
+axis(side = 2, at=seq(0, 7.6, by = 2.5),las=1,cex.axis = 1)
+dev.off()
+```
+### Promoter analysis
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+list.files()
+
+ABA <- read.csv("1.Cycles_ABA_final.csv")
+head(ABA)
+dim(ABA)
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(ABA$rs), "_", fixed = TRUE)))
+head(rs_split)
+ABA$chr <- as.numeric(rs_split$X2)
+head(ABA)
+summary(ABA)
+
+
+
+ABA_minus <- subset(ABA, direction == "-")
+head(ABA_minus)
+ABA_minus_1 <- data.frame(ABA_minus[,1:4], ABA_minus$sobicID, ABA_minus$chr)
+head(ABA_minus_1)
+names(ABA_minus_1)[6]<-paste("chr")
+names(ABA_minus_1)[5]<-paste("sobicID")
+head(ABA_minus_1)
+
+genes_minus_CDS <- read.csv("Entire_genome_minus_strand_CDS.csv")
+head(genes_minus_CDS)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(genes_minus_CDS$Gene_name), ".", fixed = TRUE)))
+rs_split1 <- data.frame(do.call("rbind", strsplit(as.character(rs_split$X1), "=", fixed = TRUE)))
+
+genes_minus_CDS$sobicID <- paste(rs_split1$X2, rs_split$X2, sep=".")
+head(genes_minus_CDS)
+
+merge_minus <- merge(genes_minus_CDS,ABA_minus_1, by="sobicID")
+head(merge_minus)
+library(data.table)
+ABA_minus_final <- unique(setDT(merge_minus)[order(rs, -rs)], by = "rs")
+ABA_minus_final$snpsite <- ABA_minus_final$stop - ABA_minus_final$ps
+head(ABA_minus_final)
+
+
+ABA_minus_final$logp <- -log10(ABA_minus_final$p_wald)
+ABA_minus_final[, "snpsite"] <- (ABA_minus_final$snpsite/1000)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+write.csv(ABA_minus_final,"ABA_minus_promoter.csv")
+
+
+####plus
+ABA_plus <- subset(ABA, direction == "+")
+head(ABA_plus)
+ABA_plus_1 <- data.frame(ABA_plus[,1:4], ABA_plus$sobicID,ABA_plus$chr)
+names(ABA_plus_1)[6]<-paste("chr")
+names(ABA_plus_1)[5]<-paste("sobicID")
+head(ABA_plus_1)
+
+
+genes_plus_CDS <- read.csv("Entire_genome_plus_strand_CDS.csv")
+head(genes_plus_CDS)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(genes_plus_CDS$Gene_name), ".", fixed = TRUE)))
+rs_split1 <- data.frame(do.call("rbind", strsplit(as.character(rs_split$X1), "=", fixed = TRUE)))
+
+genes_plus_CDS$sobicID <- paste(rs_split1$X2, rs_split$X2, sep=".")
+head(genes_plus_CDS)
+
+merge_plus <- merge(genes_plus_CDS,ABA_plus_1, by="sobicID")
+head(merge_plus)
+library(data.table)
+ABA_plus_final <- unique(setDT(merge_plus)[order(rs, -rs)], by = "rs")
+ABA_plus_final$snpsite <- ABA_plus_final$stop - ABA_plus_final$ps
+head(ABA_plus_final)
+
+ABA_plus_final$logp <- -log10(ABA_plus_final$p_wald)
+ABA_plus_final[, "snpsite"] <- (ABA_plus_final$snpsite/1000)
+
+write.csv(ABA_plus_final,"ABA_plus_promoter.csv")
+
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(ggplot2)
+
+plus <- ggplot(ABA_plus_final, aes(x=snpsite, y=logp)) + 
+  geom_point() +
+  geom_segment(data=ABA_plus_final,aes(x=snpsite, xend=snpsite,y=0,yend=logp),
+               color = '#B4AF46',alpha=0.8,size=0.5) + 
+  labs(x=NULL,y=NULL)+
+  scale_x_continuous(breaks=seq(-15,19,5))+
+  scale_y_continuous(breaks=seq(3,11,2))+
+  annotate(geom="text", x=-2.05, y=11, label="TSS",color="#B4464B")+
+  theme_classic() +
+  geom_vline(xintercept = 0, linetype="dashed", color = "#B4464B", size=1)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16))
+plus
+
+
+
+
+minus <- ggplot(ABA_minus_final,aes(x=snpsite, y=logp)) + 
+  geom_point() +
+  geom_segment(data=ABA_minus_final,aes(x=snpsite, xend=snpsite,y=0,yend=logp),
+            color = '#B4AF46',alpha=0.8,size=0.5) +
+  labs(x=NULL,y=NULL)+
+  scale_x_reverse(breaks=seq(-14,15,5))+
+  annotate(geom="text", x=-1.55, y=11, label="TTS",color="#B4464B")+
+  theme_classic() +
+  geom_vline(xintercept = 0, linetype="dashed", color = "#B4464B", size=1)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line.y = element_blank(),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_blank(),
+        axis.ticks.y = element_blank())
+minus
+
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(gridtext)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Awal_aayudh")
+tiff("ABA_promoter_plot.tiff", width = 6, height = 6, units = 'in', res = 300)
+library(gridExtra)
+grid.arrange(plus, minus, ncol = 2)
+dev.off()
+
+```
+
+
+
+
