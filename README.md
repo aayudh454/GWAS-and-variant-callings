@@ -25,6 +25,8 @@
 
 * [Page 12 2022-19-12](#id-section12). Chapter12: Putative promoter analysis
 
+* [Page 13 2023-19-01](#id-section13). Chapter13: ABA Biosynthesis
+
 ------
 <div id='id-section1'/>
 
@@ -2417,4 +2419,9 @@ write.csv(genes_plus_CDS_pwald, "1.Entire_genome_PLUS_promoter.csv")
 
 ```
 
+-----
+<div id='id-section13'/>
 
+## Chapter 13: ABA analysis 
+
+### Make a data file first
