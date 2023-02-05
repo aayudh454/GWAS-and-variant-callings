@@ -2418,6 +2418,257 @@ head(genes_plus_CDS_pwald)
 write.csv(genes_plus_CDS_pwald, "1.Entire_genome_PLUS_promoter.csv")
 
 ```
+### Calculate quantile and make the plot
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/promoter")
+list.files()
+library(ggplot2)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+
+list.files()
+gene_plus <- read.csv("1.water_stress_veg_PLUS_promoter.csv")
+library(data.table)
+gene_plus_1 <- unique(setDT(gene_plus)[order(rs, -rs)], by = "rs")
+summary(gene_plus_1)
+gene_plus_1$pval <- -log10(gene_plus_1$p_wald)
+gene_plus_1 <- gene_plus_1[order(gene_plus_1$snpsite),]
+gene_plus_1$gene_ength <- gene_plus_1$stop - gene_plus_1$start
+head(gene_plus_1)
+dim(gene_plus_1)
+
+#write.csv(gene_plus_1,"1.Entire_genome_PLUS_promoter_no_overlap_water_veg.csv", row.names = FALSE)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/promoter")
+gene_plus <-read.csv("1.Entire_genome_PLUS_promoter_no_overlap_water_veg.csv")
+head(gene_plus)
+###Figure out window size
+##i +3 because it's taking first 4 rows and doing this for all dataset
+
+dddf <- NULL
+## column number 10 as we want snpsite length to figure what bp would be good
+for (i in seq(1,nrow(gene_plus),by =3)){
+  window <- gene_plus[i:(i +3),10]
+  dddf <- rbind(dddf,window)}
+
+data <- as.data.frame(dddf)
+head(data)
+data$size <- data$V1-data$V4
+tail(data)
+dim(data)
+data <- data[1:387,]
+mean(data$size)
+
+###WINDOW1
+##Loop to calculate quantile 
+#use column number where logp is, it's 11 here.
+qnt_w1 <- NULL
+
+for (i in seq(1,nrow(gene_plus),by =3)){
+  qres <- quantile(gene_plus[i:(i +3),11], probs = 0.9)
+  qnt_w1 <- rbind(qnt_w1,qres)}
+
+##Loop to center snpsite 
+#use column number where snpsite is, it's 10 here.
+ps_w1 <- NULL
+##Column 11 is logp
+for (i in seq(1,nrow(gene_plus),by =3)){
+  snpcenter <- (-(gene_plus[i,10] - gene_plus[i+3,10])/2) + gene_plus[i,10]
+  ps_w1 <- rbind(ps_w1,snpcenter)}
+
+w1 <- as.data.frame(cbind(qnt_w1,ps_w1[1:387,]))
+w1[, "V2"] <- (w1$V2/1000)
+head(w1)
+
+###w2
+##Loop to calculate quantile 
+qnt_w2 <- NULL
+
+for (i in seq(2,nrow(gene_plus),by =3)){
+  qres <- quantile(gene_plus[i:(i +3),11], probs = 0.9)
+  qnt_w2 <- rbind(qnt_w2,qres)}
+
+##Loop to center snpsite 
+ps_w2 <- NULL
+
+for (i in seq(2,nrow(gene_plus),by =3)){
+  snpcenter <- (-(gene_plus[i,10] - gene_plus[i+3,10])/2) + gene_plus[i,10]
+  ps_w2 <- rbind(ps_w2,snpcenter)}
+
+w2 <- as.data.frame(cbind(qnt_w2,ps_w2[1:386,]))
+w2[, "V2"] <- (w2$V2/1000)
+head(w2)
+
+###w3
+##Loop to calculate quantile 
+qnt_w3 <- NULL
+
+for (i in seq(3,nrow(gene_plus),by =3)){
+  qres <- quantile(gene_plus[i:(i +3),11], probs = 0.9)
+  qnt_w3 <- rbind(qnt_w3,qres)}
+
+##Loop to center snpsite 
+ps_w3 <- NULL
+
+for (i in seq(3,nrow(gene_plus),by =3)){
+  snpcenter <- (-(gene_plus[i,10] - gene_plus[i+3,10])/2) + gene_plus[i,10]
+  ps_w3 <- rbind(ps_w3,snpcenter)}
+
+w3 <- as.data.frame(cbind(qnt_w3,ps_w3[1:386,]))
+w3[, "V2"] <- (w3$V2/1000)
+head(w3)
+
+
+
+plus_qnt <- rbind(w1,w2,w3)
+plus_qnt <- plus_qnt[order(plus_qnt$V2),]
+head(plus_qnt)
+dim(plus_qnt)
+
+plus <- ggplot(plus_qnt, aes(x=V2, y=`90%`)) + 
+  geom_point() +
+  geom_segment(data=plus_qnt,aes(x=plus_qnt$V2, xend=plus_qnt$V2,y=3,yend=plus_qnt$`90%`),
+               color = '#B4AF46',alpha=0.8,size=0.5) + 
+  labs(x=NULL,y=NULL)+
+  scale_x_continuous(breaks=seq(-3,5,1))+
+  scale_y_continuous(breaks=seq(3,11,2))+
+  annotate(geom="text", x=-0.35, y=11, label="TSS",color="#B4464B")+
+  theme_classic() +
+  geom_vline(xintercept = 0, linetype="dashed", color = "#B4464B", size=1)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16))
+plus
+
+
+###minus strand plot----------------------------------------------------------------------------------------
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/promoter")
+list.files()
+gene_minus <- read.csv("1.water_stress_veg_MINUS_promoter.csv")
+gene_minus_1 <- unique(setDT(gene_minus)[order(rs, -rs)], by = "rs")
+summary(gene_minus_1)
+gene_minus_1$pval <- -log10(gene_minus_1$p_wald)
+gene_minus_1 <- gene_minus_1[order(gene_minus_1$snpsite),]
+gene_minus_1$gene_ength <- gene_minus_1$stop - gene_minus_1$start
+head(gene_minus_1)
+dim(gene_minus_1)
+
+write.csv(gene_minus_1,"1.Entire_genome_minus_promoter_no_overlap.csv", row.names = FALSE)
+
+gene_minus <-read.csv("1.Entire_genome_minus_promoter_no_overlap.csv")
+head(gene_minus)
+
+###Figure out window size
+dddf <- NULL
+
+for (i in seq(1,nrow(gene_minus),by =3)){
+  window <- gene_minus[i:(i +3),10]
+  dddf <- rbind(dddf,window)}
+
+data <- as.data.frame(dddf)
+head(data)
+data$size <- data$V1-data$V4
+tail(data)
+dim(data)
+data <- data[1:425,]
+mean(data$size)
+
+###WINDOW1
+##Loop to calculate quantile 
+qnt_w1 <- NULL
+
+for (i in seq(1,nrow(gene_minus),by =3)){
+  qres <- quantile(gene_minus[i:(i +3),11], probs = 0.9)
+  qnt_w1 <- rbind(qnt_w1,qres)}
+
+##Loop to center snpsite 
+ps_w1 <- NULL
+
+for (i in seq(1,nrow(gene_minus),by =3)){
+  snpcenter <- (-(gene_minus[i,10] - gene_minus[i+3,10])/2) + gene_minus[i,10]
+  ps_w1 <- rbind(ps_w1,snpcenter)}
+
+w1 <- as.data.frame(cbind(qnt_w1,ps_w1[1:425,]))
+w1[, "V2"] <- (w1$V2/1000)
+head(w1)
+
+###w2
+##Loop to calculate quantile 
+qnt_w2 <- NULL
+
+for (i in seq(2,nrow(gene_minus),by =3)){
+  qres <- quantile(gene_minus[i:(i +3),11], probs = 0.9)
+  qnt_w2 <- rbind(qnt_w2,qres)}
+
+##Loop to center snpsite 
+ps_w2 <- NULL
+
+for (i in seq(2,nrow(gene_minus),by =3)){
+  snpcenter <- (-(gene_minus[i,10] - gene_minus[i+3,10])/2) + gene_minus[i,10]
+  ps_w2 <- rbind(ps_w2,snpcenter)}
+
+w2 <- as.data.frame(cbind(qnt_w2,ps_w2[1:425,]))
+w2[, "V2"] <- (w2$V2/1000)
+head(w2)
+
+###w3
+##Loop to calculate quantile 
+qnt_w3 <- NULL
+
+for (i in seq(3,nrow(gene_minus),by =3)){
+  qres <- quantile(gene_minus[i:(i +3),11], probs = 0.9)
+  qnt_w3 <- rbind(qnt_w3,qres)}
+
+##Loop to center snpsite 
+ps_w3 <- NULL
+
+for (i in seq(3,nrow(gene_minus),by =3)){
+  snpcenter <- (-(gene_minus[i,10] - gene_minus[i+3,10])/2) + gene_minus[i,10]
+  ps_w3 <- rbind(ps_w3,snpcenter)}
+
+w3 <- as.data.frame(cbind(qnt_w3,ps_w3[1:424,]))
+w3[, "V2"] <- (w3$V2/1000)
+head(w3)
+
+
+minus_qnt <- rbind(w1,w2,w3)
+minus_qnt <- minus_qnt[order(minus_qnt$V2),]
+head(minus_qnt)
+dim(minus_qnt)
+
+
+minus <- ggplot(minus_qnt, aes(x=V2, y=`90%`)) + 
+  geom_point() +
+  geom_segment(data=minus_qnt,aes(x=minus_qnt$V2, xend=minus_qnt$V2,y=3,yend=minus_qnt$`90%`),
+               color = '#B4AF46',alpha=0.8,size=0.5) + 
+  labs(x=NULL,y=NULL)+
+  scale_x_reverse(breaks=seq(-4,4,1))+
+  annotate(geom="text", x=-0.35, y=11, label="TTS",color="#B4464B")+
+  theme_classic() +
+  geom_vline(xintercept = 0, linetype="dashed", color = "#B4464B", size=1)+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line.y = element_blank(),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_blank(),
+        axis.ticks.y = element_blank())
+minus
+
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(gridtext)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/promoter")
+tiff("Water_veg_promoter_plot.tiff", width = 8, height = 6, units = 'in', res = 300)
+library(gridExtra)
+grid.arrange(plus, minus, ncol = 2)
+dev.off()
+
+
+```
 
 -----
 <div id='id-section13'/>
