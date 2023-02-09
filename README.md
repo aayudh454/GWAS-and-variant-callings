@@ -27,6 +27,8 @@
 
 * [Page 13 2023-19-01](#id-section13). Chapter13: ABA colocalization
 
+* [Page 14 2023-09-02](#id-section14). Chapter14: Sampling (closely related but high HS difference)
+
 ------
 <div id='id-section1'/>
 
@@ -3073,7 +3075,236 @@ grid.arrange(plus, minus, ncol = 2)
 dev.off()
 
 ```
+-----
+<div id='id-section14'/>
+
+## Chapter 13: Sampling (closely related but high HS difference) 
+
+### Getting distance matrix and NJ tree
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/GBS data processing /Hu_GBS_2019")
+library(SNPRelate)
+library(gdsfmt)
+genofile <- snpgdsOpen('SNPs_imp.recode.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+length(sample.id)
+
+GBS_sample <- as.data.frame(sample.id)
+  
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(GBS_sample$sample.id), ".", fixed = TRUE)))
+head(rs_split)
+
+GBS_sample$Accessions <- rs_split$X1
+head(GBS_sample)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+list.files()
+
+landraces <- read.csv("Accessions_Georef_Final.csv")  
+head(landraces)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(landraces$Accession_Info), "_", fixed = TRUE)))
+head(rs_split)
+
+landraces$Accessions <- paste0(rs_split$X1,rs_split$X2)
+
+sampleinfo <- merge(landraces,GBS_sample,merge = "sample.id")
+library(data.table)
+sampleinfo <- unique(setDT(sampleinfo)[order(sample.id, -sample.id)], by = "sample.id")
+#write.csv(sampleinfo,"1.GBS_sampleID_joel.csv", row.names = FALSE)
+
+#LD based SNP pruning, instead of snpgdsSelectSNP you can use snpgdsLDpruning to get unliked SNPs
+#You can look into specific LD thresholds for Sorghum
+set.seed(1000)
+snpset = snpgdsLDpruning(genofile,maf=0.05,missing.rate=0.5,ld.threshold=0.4, slide.max.bp=50000)
+snp.id = unlist(snpset)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+#here's a dataframe with some traits and sample.id matching genofile
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+sampleinfo$sample.id
+
+#you can use either an ibs or dissimilarity matrix for the nj tree
+ibs  =  snpgdsIBS(genofile,sample.id=sampleinfo$sample.id,snp.id=snp.id,maf=0.05,missing.rate=0.5,num.thread=4,verbose=TRUE)
+dis  =  snpgdsDiss(genofile,sample.id=sampleinfo$sample.id,snp.id=snp.id,maf=0.05,missing.rate=0.5,num.thread=4,verbose=TRUE)
+
+#install.packages("ape", dependencies = T)
+library(ape)
+#devtools::install_github("KlausVigo/phangorn")
+library(phangorn)
+library(phyclust)
+library(phyloch)
+ibs.matrix <- ibs$ibs
+dim(ibs.matrix)
+#sometimes the order of the ibs matrix ends up not matching your trait dataframe, so you need to reorder
+order <- as.data.frame(ibs$sample.id)
+dim(order)
+colnames(order) <- c("sample.id")
+
+order.idx <- match(order$sample.id,sampleinfo$sample.id)
+order.idx
+length(order.idx)
+
+ordered_ibs <- sampleinfo[order.idx,]
+
+row.names(ibs.matrix) <- ordered_ibs$Accessions
+colnames(ibs.matrix) <- ordered_ibs$Accessions
+
+#this was me comparing  
+#the distance matrix from ibs
+mm <- 1-ibs.matrix
+
+matrix_data <- as.data.frame(mm)
+
+library('ggplot2')
+library('ape')
+library('phangorn')
+library('dplyr')
+library('ggtree')
+library('phylobase')
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+write.table(matrix_data, "1.GBS_distance_matrix.csv", sep=",")
+
+pdf(file = 'ibs_nj_plain.pdf', width = 40, height = 40)
+my_nj <- ape::nj(mm)
+plot(my_nj)
+dev.off()
+
+pdf(file = 'ibs_nj_phangorn.pdf', width = 10, height = 40)
+my_upgma <- phangorn::upgma(mm)
+par(family="Times")
+plot(my_upgma, cex=0.7)
+dev.off()
+
+```
+
+### Creating closely related pairs
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+list.files()
+
+data <- read.csv("1.GBS_distance_matrix.csv")
+head(data)
+
+row.names(data) <- data[,1]
+data <- data[,2:378]
+#mat = matrix(nrow = 200, ncol = 2)
+
+#mat[1,1] <- print(colnames(data[1]))
+#mat[1,2] = rownames(data)[which(data[,colnames(data[1])] == min(data[,1][which(data[,1]>0)]))]
+#head(mat)
+
+#------looping--------------------
+
+dddf_1 <- NULL
+
+for(i in 1:ncol(data)) { 
+  dddf <- NULL
+  dddf$accession_1 <- print(colnames(data[i]))
+  dddf$accession_2 = rownames(data)[which(data[,colnames(data[i])] == min(data[,i][which(data[,i]>0)]))]
+  
+  dddf_1 <- rbind(dddf_1, dddf)
+}
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+#write.csv(dddf_1,"pairs_closest.csv", row.names = FALSE)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+pairs <- read.csv("pairs_closest.csv")
+df <- as.data.frame(pairs)
+head(df)
+summary(df)
+
+###HS score for accession 1
+
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_1")
+
+df1 <- merge(df, sampleinfo, by ="accession_1")
+names(df1)[4]<-paste("Lat")
+names(df1)[5]<-paste("Lon")
+head(df1)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+pairs$accession1_HS <- raster::extract(preds.all, df1[,c("Lon","Lat")])
+
+###HS score for accession 2
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_2")
+
+df2 <- merge(df, sampleinfo, by ="accession_2")
+names(df2)[4]<-paste("Lat")
+names(df2)[5]<-paste("Lon")
+head(df2)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+pairs$accession2_HS <- raster::extract(preds.all, df2[,c("Lon","Lat")])
+
+head(pairs)
+pairs <- na.omit(pairs)
+pairs$HS_diff <- pairs$accession1_HS - pairs$accession2_HS
+head(pairs)
+pairs_final <- pairs[with(pairs,order(HS_diff)),]
+head(pairs_final)
+pairs_final[,"HS_diff"] <- abs(pairs_final$HS_diff)
+
+pairs_w_HS <- subset(pairs_final, HS_diff > 0.3)
+head(pairs_w_HS)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+write.csv(pairs_w_HS, "1.Pairs_with_HS score0.3.csv", row.names = FALSE)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+data <- read.csv("1.Pairs_with_HS score0.3.csv")
+```
+
+### histogram to see the distribution of the data
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+data <- read.csv("1.Pairs_with_HS score0.3.csv")
+
+ac1 <- data.frame(data$accession_1,data$accession1_HS)
+names(ac1 )[1]<-paste("Accessions")
+names(ac1 )[2]<-paste("HS_score")
+ac2 <- data.frame(data$accession_2,data$accession2_HS)
+names(ac2 )[1]<-paste("Accessions")
+names(ac2 )[2]<-paste("HS_score")
+
+ac1_2 <- rbind(ac1,ac2)
+
+library(data.table)
+ac1_2 <- unique(setDT(ac1_2)[order(Accessions, -Accessions)], by = "Accessions")
 
 
+#check histogram_HS_score
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+tiff("Joel_sampling_77pairs.tiff", width = 5, height = 5, units = 'in', res = 300)
+hist(ac1_2$HS_score, prob = TRUE, main = NA, xlab="HS Score",col = "lightblue")
+x <- seq(min(ac1_2$HS_score), max(ac1_2$HS_score), length = 40)
+f <- dnorm(x, mean = mean(ac1_2$HS_score), sd = sd(ac1_2$HS_score))
+lines(x, f, col = "red", lwd = 2)
+dev.off()
+
+```
 
 
