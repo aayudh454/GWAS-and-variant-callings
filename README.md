@@ -3078,7 +3078,7 @@ dev.off()
 -----
 <div id='id-section14'/>
 
-## Chapter 13: Sampling (closely related but high HS difference) 
+## Chapter 14: Sampling (closely related but high HS difference) 
 
 ### Getting distance matrix and NJ tree
 
