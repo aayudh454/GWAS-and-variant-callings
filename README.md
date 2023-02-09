@@ -1237,6 +1237,7 @@ head(gemma_output_clean)
 dim(gemma_output_clean)
 
 require(dplyr)
+##Move column
 gemma_output_final <- gemma_output_clean %>% relocate(allele, .before = n_miss)
 head(gemma_output_final)
 dim(gemma_output_final)
