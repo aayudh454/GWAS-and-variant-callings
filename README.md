@@ -3189,108 +3189,8 @@ my_upgma <- phangorn::upgma(mm)
 par(family="Times")
 plot(my_upgma, cex=0.7)
 dev.off()
-
-
-
 ```
-
-### Creating closely related pairs
-
-```
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
-list.files()
-
-data <- read.csv("1.GBS_distance_matrix.csv")
-head(data)
-
-row.names(data) <- data[,1]
-data <- data[,2:378]
-#mat = matrix(nrow = 200, ncol = 2)
-
-#mat[1,1] <- print(colnames(data[1]))
-#mat[1,2] = rownames(data)[which(data[,colnames(data[1])] == min(data[,1][which(data[,1]>0)]))]
-#head(mat)
-
-#------looping--------------------
-
-dddf_1 <- NULL
-
-for(i in 1:ncol(data)) { 
-  dddf <- NULL
-  dddf$accession_1 <- print(colnames(data[i]))
-  dddf$accession_2 = rownames(data)[which(data[,colnames(data[i])] == min(data[,i][which(data[,i]>0)]))]
-  
-  dddf_1 <- rbind(dddf_1, dddf)
-}
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
-#write.csv(dddf_1,"pairs_closest.csv", row.names = FALSE)
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
-pairs <- read.csv("pairs_closest.csv")
-df <- as.data.frame(pairs)
-head(df)
-summary(df)
-
-###HS score for accession 1
-
-sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
-head(sampleinfo)
-
-names(sampleinfo)[1]<-paste("accession_1")
-
-df1 <- merge(df, sampleinfo, by ="accession_1")
-names(df1)[4]<-paste("Lat")
-names(df1)[5]<-paste("Lon")
-head(df1)
-library(raster)
-library(sp)
-library(rgdal)
-library(tidyverse)
-
-setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
-list.files()
-
-preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
-pairs$accession1_HS <- raster::extract(preds.all, df1[,c("Lon","Lat")])
-
-###HS score for accession 2
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
-sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
-head(sampleinfo)
-
-names(sampleinfo)[1]<-paste("accession_2")
-
-df2 <- merge(df, sampleinfo, by ="accession_2")
-names(df2)[4]<-paste("Lat")
-names(df2)[5]<-paste("Lon")
-head(df2)
-library(raster)
-library(sp)
-library(rgdal)
-library(tidyverse)
-
-setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
-list.files()
-
-preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
-pairs$accession2_HS <- raster::extract(preds.all, df2[,c("Lon","Lat")])
-
-head(pairs)
-pairs <- na.omit(pairs)
-pairs$HS_diff <- pairs$accession1_HS - pairs$accession2_HS
-head(pairs)
-pairs_final <- pairs[with(pairs,order(HS_diff)),]
-head(pairs_final)
-pairs_final[,"HS_diff"] <- abs(pairs_final$HS_diff)
-
-pairs_w_HS <- subset(pairs_final, HS_diff > 0.3)
-head(pairs_w_HS)
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
-write.csv(pairs_w_HS, "1.Pairs_with_HS score0.3.csv", row.names = FALSE)
-
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
-data <- read.csv("1.Pairs_with_HS score0.3.csv")
-```
-### Getting genetic distance of the pairs
+### Getting genetic distance of the closely related pairs
 ```
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
 list.files()
@@ -3316,6 +3216,88 @@ for(i in 1:ncol(data)) {
 }
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
 write.csv(dddf_1,"pairs_closest_genetic_distance.csv", row.names = FALSE)
+```
+### Get HS score difference of the closely related pairs
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
+list.files()
+pairs <- read.csv("pairs_closest_genetic_distance.csv")
+head(pairs)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_1")
+
+ac1 <- pairs[,1]
+ac1 <- as.data.frame(ac1)
+names(ac1)[1]<-paste("accession_1")
+
+order.idx <- match(ac1$accession_1, sampleinfo$accession_1)
+order.idx
+ordered <- sampleinfo[order.idx,]
+head(ordered)
+
+names(ordered )[3]<-paste("Lat")
+names(ordered )[4]<-paste("Lon")
+head(ordered)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+pairs$accession1_HS <- raster::extract(preds.all, ordered[,c("Lon","Lat")])
+head(pairs)
+
+###HS score for accession 2
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_2")
+
+ac2 <- pairs[,2]
+ac2 <- as.data.frame(ac2)
+names(ac2)[1]<-paste("accession_2")
+
+order.idx_2 <- match(ac2$accession_2, sampleinfo$accession_2)
+order.idx_2
+ordered_2 <- sampleinfo[order.idx_2,]
+head(ordered_2)
+
+names(ordered_2)[3]<-paste("Lat")
+names(ordered_2)[4]<-paste("Lon")
+head(ordered_2)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+pairs$accession2_HS <- raster::extract(preds.all, ordered_2[,c("Lon","Lat")])
+
+head(pairs)
+pairs <- na.omit(pairs)
+pairs$HS_diff <- pairs$accession1_HS - pairs$accession2_HS
+head(pairs)
+pairs[,"HS_diff"] <- abs(pairs$HS_diff)
+pairs_final <- pairs[with(pairs,order(-HS_diff)),]
+head(pairs_final)
+pairs_w_HS <- subset(pairs_final, HS_diff > 0.3)
+head(pairs_w_HS)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+write.csv(pairs_w_HS, "1.Pairs_with_HS score0.3.csv", row.names = FALSE)
+
 ```
 
 ### histogram to see the distribution of the data
