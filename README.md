@@ -3306,5 +3306,128 @@ lines(x, f, col = "red", lwd = 2)
 dev.off()
 
 ```
+### Correlation between all possible pairs from the matrix and its HS diff vs genetic distance
 
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+###All pairs
+data <- read.csv("1.GBS_distance_matrix.csv")
+head(data)
+
+row.names(data) <- data[,1]
+data <- data[,2:378]
+
+df <- as.matrix(sapply(data, as.numeric))
+row.names(df) <- row.names(data)
+
+library(tidyr)
+all_pairs <- crossing(var1 = row.names(data), var2 = row.names(data))
+
+fd1 <- as.data.frame(all_pairs)
+head(fd1)
+
+
+library(phylin)
+library(geometry)
+##https://rdrr.io/cran/phylin/man/extract.var.html 
+fd1$genedist <- extract.val(df, fd1) 
+head(fd1)
+
+library(dplyr)
+All_pairs_values <- filter(fd1, pair.data > 0)
+names(All_pairs_values)[1]<-paste("accession_1")
+names(All_pairs_values)[2]<-paste("accession_2")
+head(All_pairs_values)
+
+###get HS scores
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_1")
+
+ac1 <- All_pairs_values[,1]
+ac1 <- as.data.frame(ac1)
+names(ac1)[1]<-paste("accession_1")
+
+order.idx <- match(ac1$accession_1, sampleinfo$accession_1)
+order.idx
+ordered <- sampleinfo[order.idx,]
+head(ordered)
+
+names(ordered )[3]<-paste("Lat")
+names(ordered )[4]<-paste("Lon")
+
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+All_pairs_values$accession1_HS <- raster::extract(preds.all, ordered[,c("Lon","Lat")])
+head(All_pairs_values)
+
+
+
+###HS score for accession 2
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_2")
+
+ac2 <- All_pairs_values[,2]
+ac2 <- as.data.frame(ac2)
+names(ac2)[1]<-paste("accession_2")
+
+order.idx_2 <- match(ac2$accession_2, sampleinfo$accession_2)
+order.idx_2
+ordered_2 <- sampleinfo[order.idx_2,]
+head(ordered_2)
+
+names(ordered_2)[3]<-paste("Lat")
+names(ordered_2)[4]<-paste("Lon")
+head(ordered_2)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+All_pairs_values$accession2_HS <- raster::extract(preds.all, ordered_2[,c("Lon","Lat")])
+
+head(All_pairs_values)
+pairs <- na.omit(All_pairs_values)
+pairs$HS_diff <- pairs$accession1_HS - pairs$accession2_HS
+pairs[,"HS_diff"] <- abs(pairs$HS_diff)
+pairs <- filter(pairs, HS_diff > 0)
+head(pairs)
+pairs_final <- pairs[with(pairs,order(-HS_diff)),]
+head(pairs_final)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/all_pairs")
+tiff("all_pairs.tiff", width = 5, height = 5, units = 'in', res = 300)
+ggplot()+
+  geom_point(aes(x=pairs_final$genedist,y=pairs_final$HS_diff),size=1,colour="black")+
+  labs(x="Genetic Distance",y="HS Score diff.")+
+  geom_smooth(aes(x=pairs_final$genedist,y=pairs_final$HS_diff),se=FALSE, method="lm", span=0.75)+
+  theme_classic() +
+  scale_x_continuous(breaks=seq(0.05,0.35,0.10))+
+  scale_y_continuous(breaks=seq(0,0.90,0.30))+
+  annotate(geom="text", x=0.34, y=0.89, label="Cor = 0.049",color="#B4464B")+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+dev.off()
+
+cor.test(pairs_final$genedist,pairs_final$HS_diff, method="pearson")
+
+```
 
