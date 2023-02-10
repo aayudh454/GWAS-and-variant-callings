@@ -3276,6 +3276,33 @@ write.csv(pairs_w_HS, "1.Pairs_with_HS score0.3.csv", row.names = FALSE)
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
 data <- read.csv("1.Pairs_with_HS score0.3.csv")
 ```
+### Getting genetic distance of the pairs
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+list.files()
+
+data <- read.csv("1.GBS_distance_matrix.csv")
+head(data)
+
+row.names(data) <- data[,1]
+data <- data[,2:378]
+
+
+#------looping--------------------
+
+dddf_1 <- NULL
+
+for(i in 1:ncol(data)) { 
+  dddf <- NULL
+  dddf$accession_1 <- print(colnames(data[i]))
+  dddf$accession_2 = rownames(data)[which(data[,colnames(data[i])] == min(data[,i][which(data[,i]>0)]))]
+  dddf$genedist = min(data[,i][which(data[,i]>0)])
+  
+  dddf_1 <- rbind(dddf_1, dddf)
+}
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
+write.csv(dddf_1,"pairs_closest_genetic_distance.csv", row.names = FALSE)
+```
 
 ### histogram to see the distribution of the data
 
