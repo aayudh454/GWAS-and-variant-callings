@@ -3428,6 +3428,33 @@ PI514390
 write.csv(final, "Haversine_distance.csv", row.names = FALSE)
 
 ```
+### Correlatios netween HS diff vs genetic distance of closely related pairs
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+list.files()
+
+data <- read.csv("1.Pairs_with_HS score0.3.csv")
+head(data)
+
+library(ggplot2)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/correlations")
+
+tiff("Closely related_cor.tiff", width = 5, height = 5, units = 'in', res = 300)
+ggplot()+
+  geom_point(aes(x=data$genedist,y=data$HS_diff),size=2,colour="black")+
+  labs(x="Genetic Distance",y="HS Score diff.")+
+  geom_smooth(aes(x=data$genedist,y=data$HS_diff),se=FALSE, method="lm", span=0.75)+
+  theme_classic() +
+  scale_x_continuous(breaks=seq(0,0.21,0.07))+
+  scale_y_continuous(breaks=seq(0.30,0.77,0.15))+
+  annotate(geom="text", x=0.20, y=0.77, label="Cor = 0.154",color="#B4464B")+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+dev.off()
+```
 
 
 ### Creating random pairs and HS diff vs genetic distance
