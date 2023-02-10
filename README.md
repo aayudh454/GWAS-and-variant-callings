@@ -3103,6 +3103,12 @@ list.files()
 
 landraces <- read.csv("Accessions_Georef_Final.csv")  
 head(landraces)
+names(landraces)[2]<-paste("Lat")
+names(landraces)[3]<-paste("Lon")
+
+library(maps)
+landraces$Country <- map.where("world", landraces$Lon, landraces$Lat)
+head(landraces)
 
 rs_split <- data.frame(do.call("rbind", strsplit(as.character(landraces$Accession_Info), "_", fixed = TRUE)))
 head(rs_split)
@@ -3112,7 +3118,13 @@ landraces$Accessions <- paste0(rs_split$X1,rs_split$X2)
 sampleinfo <- merge(landraces,GBS_sample,merge = "sample.id")
 library(data.table)
 sampleinfo <- unique(setDT(sampleinfo)[order(sample.id, -sample.id)], by = "sample.id")
-#write.csv(sampleinfo,"1.GBS_sampleID_joel.csv", row.names = FALSE)
+head(sampleinfo)
+sampleinfo <- sampleinfo[3:377,] ##removed india and sri lanka
+
+sampleinfo <- rbind(sampleinfo[1:17,],sampleinfo[19:375,]) ##removed pakistan
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+write.csv(sampleinfo,"1.GBS_sampleID_joel.csv", row.names = FALSE)
 
 #LD based SNP pruning, instead of snpgdsSelectSNP you can use snpgdsLDpruning to get unliked SNPs
 #You can look into specific LD thresholds for Sorghum
@@ -3177,6 +3189,8 @@ my_upgma <- phangorn::upgma(mm)
 par(family="Times")
 plot(my_upgma, cex=0.7)
 dev.off()
+
+
 
 ```
 
