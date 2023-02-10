@@ -3304,8 +3304,193 @@ x <- seq(min(ac1_2$HS_score), max(ac1_2$HS_score), length = 40)
 f <- dnorm(x, mean = mean(ac1_2$HS_score), sd = sd(ac1_2$HS_score))
 lines(x, f, col = "red", lwd = 2)
 dev.off()
+```
+
+### Creating Map and Haversine_distance
 
 ```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+data <- read.csv("1.Pairs_with_HS score0.3.csv")
+head(data)
+
+ac1 <- data.frame(data$accession_1,data$accession1_HS)
+names(ac1 )[1]<-paste("Accessions")
+names(ac1 )[2]<-paste("HS_score")
+ac2 <- data.frame(data$accession_2,data$accession2_HS)
+names(ac2 )[1]<-paste("Accessions")
+names(ac2 )[2]<-paste("HS_score")
+
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+ac1_cord <- merge(ac1,sampleinfo, by ="Accessions")
+head(ac1_cord)
+ac1_cord_order <- match(ac1$Accessions, ac1_cord$Accessions)
+ac1_cord_1 <- ac1_cord [ac1_cord_order,]
+head(ac1_cord_1)
+names(ac1_cord_1)[4]<-paste("lat1")
+names(ac1_cord_1)[5]<-paste("lon1")
+
+ac2_cord <- merge(ac2,sampleinfo, by ="Accessions")
+head(ac2_cord)
+ac2_cord_order <- match(ac2$Accessions, ac2_cord$Accessions)
+ac2_cord_1 <- ac2_cord [ac2_cord_order,]
+head(ac2_cord_1)
+names(ac2_cord_1)[4]<-paste("lat2")
+names(ac2_cord_1)[5]<-paste("lon2")
+
+data1 <- cbind(ac1_cord_1,ac2_cord_1)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
+write.csv(data1,"twocords_csv",row.names = FALSE)
+
+all <- rbind(ac1_cord,ac2_cord)
+head(all)
+
+library(data.table)
+all <- unique(setDT(all)[order(Accessions, -Accessions)], by = "Accessions")
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
+library(maps)
+library(ggplot2)
+library(wesanderson)
+
+mid<-mean(all$HS_score)
+
+base_world <- map_data("world")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
+tiff("77pairs.tiff", width = 6, height = 6, units = 'in', res = 300)
+ggplot() + 
+  geom_map(data = base_world, map = base_world,aes(long, lat, map_id = region),
+           color = "black", fill = "white", size = 0.5) +
+  geom_point(data = all,size=2,aes(longitude, latitude,color = HS_score),alpha = 1) + #set the color outside of `aes`
+  theme(text = element_text(size=20), legend.position="none") +
+  coord_sf(xlim = c(-20, 50), ylim = c(-35, 35), expand = FALSE)+
+  scale_color_gradient2(midpoint=mid, low="blue", mid="white", high="red", space ="Lab" )+
+  theme_classic() +
+  theme(legend.position="right",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16)) 
+dev.off()
+
+###Getting distance
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/map")
+list.files()
+
+data1 <- read.csv("twocords_csv")
+head(data1)
+
+library(geosphere)
+
+dddf_1 <- NULL
+
+for(i in 1:nrow(data1)) { 
+  dddf <- NULL
+  dddf$dist <- distHaversine(c(data1[i,5], data1[i,4]), c(data1[i,11], data1[i,10]), r=6378137) 
+  
+  dddf_1 <- rbind(dddf_1, dddf)
+}
+
+df <- as.numeric(dddf_1,row.names = FALSE)
+head(df)
+fd <- as.data.frame(df)
+
+final <- cbind(data,fd)
+names(final)[6]<-paste("Haversine_distance")
+head(final)
+
+summary(final)
+
+PI514390
+write.csv(final, "Haversine_distance.csv", row.names = FALSE)
+
+```
+
+
+### Creating random pairs and HS diff vs genetic distance
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+data <- read.csv("1.GBS_distance_matrix.csv")
+head(data)
+
+data1 <- as.data.frame(data$PI218112)
+
+data_acc <- as.data.frame(sampleinfo[,1])
+
+dddf_1 <- NULL
+for(i in 87) { 
+  dddf <- NULL
+  dddf$accession_1 <- (data_acc[sample(nrow(data_acc), i), ])
+  dddf$accession_2 <- (data_acc[sample(nrow(data_acc), i), ])
+  
+  dddf_1 <- rbind(dddf_1, dddf)
+}
+
+random_pairs <- as.data.frame(dddf)
+head(random_pairs)
+
+random_pairs$genedist <- (data1[sample(nrow(data1), 87), ])
+
+head(random_pairs)
+
+names(sampleinfo)[1]<-paste("accession_1")
+
+df1 <- merge(random_pairs, sampleinfo, by ="accession_1")
+names(df1)[5]<-paste("Lat")
+names(df1)[6]<-paste("Lon")
+head(df1)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+random_pairs$accession1_HS <- raster::extract(preds.all, df1[,c("Lon","Lat")])
+
+###HS score for accession 2
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling")
+sampleinfo <- data.frame(read.csv('1.GBS_sampleID_joel.csv', header=TRUE))
+head(sampleinfo)
+
+names(sampleinfo)[1]<-paste("accession_2")
+
+df2 <- merge(random_pairs, sampleinfo, by ="accession_2")
+names(df2)[6]<-paste("Lat")
+names(df2)[7]<-paste("Lon")
+head(df2)
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+setwd("~/OneDrive - University of Vermont/PENN STATE/RAstor data")
+list.files()
+preds.all <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/RAstor data/preds.all.tif"))
+random_pairs$accession2_HS <- raster::extract(preds.all, df2[,c("Lon","Lat")])
+
+head(random_pairs)
+pairs <- na.omit(random_pairs)
+pairs$HS_diff <- pairs$accession1_HS - pairs$accession2_HS
+head(pairs)
+pairs_final <- pairs[with(pairs,order(HS_diff)),]
+head(pairs_final)
+pairs_final[,"HS_diff"] <- abs(pairs_final$HS_diff)
+
+pairs_final <- pairs_final[1:77,]
+head(pairs_final)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/joel sampling/random pair")
+write.csv(pairs_final,"random_pairs_final.csv",row.names = FALSE)
+```
+
+
 ### Correlation between all possible pairs from the matrix and its HS diff vs genetic distance
 
 ```
