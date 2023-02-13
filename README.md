@@ -827,18 +827,21 @@ Now next part is in your R
 
 ```
 #-------------------ggplot-part---------------------------------
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/map SNPs")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/candidates")
 list.files()
-SNP_49813813 <- read.csv("SNP_rs_04_49813813.csv")
-head(SNP_49813813)
+##expressed protein_SNP_rs_09_53552965
+SNP_53552965 <- read.csv("SNP_rs_09_53552965_cyclin.csv")
+head(SNP_53552965)
 
-metadata <- read.csv("1. ReseqGWAS_traits_revissed_predsALL.csv")
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted")
+metadata <- read.csv("1. Cycles_new.csv")
 head(metadata)
 
-SNP_49813813_full<- merge(SNP_49813813,metadata, by="LIB")
+SNP_53552965_full<- merge(SNP_53552965,metadata, by="LIB")
+head(SNP_53552965_full)
 
-SNP_49813813_full$ref_alt <- ifelse(SNP_49813813_full$rs_04_49813813_C.G=="2",'REF','ALT')
-head(SNP_49813813_full)
+SNP_53552965_full$ref_alt <- ifelse(SNP_53552965_full$rs_53552965=="2",'REF','ALT')
+head(SNP_53552965_full)
 
 ##MAP
 library(tidyverse)
@@ -846,22 +849,23 @@ library(sf)
 library(mapview)
 library(ggplot2)
 
-SNP_49813813_full %>% 
-  select(Accession, Lon, 
-         Lat,ref_alt,population) %>%
-  head()
-
 world <- map_data("world")
-
-setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/map SNPs")
-tiff("SNP_49813813.tiff", width = 6, height = 6, units = 'in', res = 300)
+mid<-mean(SNP_53552965_full$water_veg_avg_log)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/cycles_predicted/candidates")
+tiff("cyclin_legend.tiff", width = 6, height = 6, units = 'in', res = 300)
 ggplot() + 
   geom_map(data = world, map = world,aes(long, lat, map_id = region),
            color = "black", fill = "white", size = 0.1) +
-  geom_point(data = SNP_49813813_full,aes(Lon, Lat, color = ref_alt),alpha = 1) +
+  geom_point(data = SNP_53552965_full,aes(Lon, Lat, color = water_veg_avg_log,shape = ref_alt),alpha = 1) +
+  theme_classic() +
   coord_sf(xlim = c(-20, 50), ylim = c(-35, 35), expand = FALSE)+
-  scale_color_manual(values=c('red', '#56B4E9'))+
-  labs(x = NULL, y = NULL) 
+  scale_color_gradient2(midpoint=mid, low="blue", mid="white", high="red", space ="Lab" )+
+  scale_shape_manual(values=c(19, 2))+
+  labs(x = NULL, y = NULL) +
+  theme(legend.position="right",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16)) 
 dev.off()
 ```
 **Density plot**
