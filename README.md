@@ -29,6 +29,8 @@
 
 * [Page 14 2023-09-02](#id-section14). Chapter14: Sampling (closely related but high HS difference)
 
+* [Page 15 2023-23-02](#id-section14). Chapter15: Redundancy analysis (RDA) for drought
+
 ------
 <div id='id-section1'/>
 
@@ -3669,4 +3671,292 @@ dev.off()
 cor.test(pairs_final$genedist,pairs_final$HS_diff, method="pearson")
 
 ```
+``
+-----
+<div id='id-section15'/>
+
+## Chapter 14: Redundancy analysis (RDA) for drought
+
+### Getting climate variables
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/acessions and cords/env variables")
+cycles <- read.csv("1. Cycles_new.csv")
+head(cycles)
+##Add bioclim variables
+
+data <- data.frame(cycles[,1:4],cycles[7:8])
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio")
+list.files()
+library(raster)
+library(sp)
+library(rgdal)
+library(tidyverse)
+
+Annual_Mean_Temperature <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_1.tif"))
+data$Annual_Mean_Temperature <- raster::extract(Annual_Mean_Temperature, data[,c("Lon","Lat")])
+
+Max_Temperature_of_Warmest_Month <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_5.tif"))
+data$Max_Temperature_of_Warmest_Month <- raster::extract(Max_Temperature_of_Warmest_Month, data[,c("Lon","Lat")])
+
+Mean_Temp_of_Wettest_Quarter <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_8.tif"))
+data$Mean_Temp_of_Wettest_Quarter <- raster::extract(Mean_Temp_of_Wettest_Quarter , data[,c("Lon","Lat")])
+
+Mean_Temp_Driest_Quarter <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_9.tif"))
+data$Mean_Temp_Driest_Quarter <- raster::extract(Mean_Temp_Driest_Quarter, data[,c("Lon","Lat")])
+
+MeanTemp_Warmest_Quarter <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_10.tif"))
+data$MeanTemp_Warmest_Quarter <- raster::extract(MeanTemp_Warmest_Quarter, data[,c("Lon","Lat")])
+
+Annual_Precipitation <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_12.tif"))
+data$Annual_Precipitation <- raster::extract(Annual_Precipitation, data[,c("Lon","Lat")])
+
+Precipitation_Wettest_Month <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_13.tif"))
+data$Precipitation_Wettest_Month <- raster::extract(Precipitation_Wettest_Month, data[,c("Lon","Lat")])
+
+Precipitation_Driest_Month <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_14.tif"))
+data$Precipitation_Driest_Month <- raster::extract(Precipitation_Driest_Month, data[,c("Lon","Lat")])
+p <- (data$Precipitation_Driest_Month + 1)
+data$Precipitation_Driest_Month_log <- log(p)
+
+Precipitation_Seasonality <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_15.tif"))
+data$Precipitation_Seasonality <- raster::extract(Precipitation_Seasonality, data[,c("Lon","Lat")])
+
+Precipitation_Wettest_Quarter <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_16.tif"))
+data$Precipitation_Wettest_Quarter <- raster::extract(Precipitation_Wettest_Quarter, data[,c("Lon","Lat")])
+
+Precipitation_Driest_Quarter <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_17.tif"))
+data$Precipitation_Driest_Quarter <- raster::extract(Precipitation_Driest_Quarter, data[,c("Lon","Lat")])
+q <- (data$Precipitation_Driest_Quarter +1)
+data$Precipitation_Driest_Quarter_log <- log(q)
+
+Precipitation_Warmest_Quarter <- raster(paste0("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/wc2.1_30s_bio/wc2.1_30s_bio_18.tif"))
+data$Precipitation_Warmest_Quarter <- raster::extract(Precipitation_Warmest_Quarter, data[,c("Lon","Lat")])
+
+### soil moisture capacity derived from soil texture  - http://webmap.ornl.gov/wcsdown/wcsdown.jsp?dg_id=545_1
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/soil data")
+soil_m <-raster('~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables/soil data/wrtext.asc')
+
+data$soil_m<- raster::extract(soil_m, data[,c("Lon","Lat")])
+data$soil_m_log <- log10(data$soil_m)
+
+AI <- raster(paste0("~/OneDrive - University of Vermont/PENN STATE/Aridity_index_gwas/ai_v3_yr.tif"))
+Global_AI <- raster::extract(AI, data[,c("Lon","Lat")])
+data$Aridity_Index <- ((Global_AI)*0.0001)
+
+head(data)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables")
+
+
+library(maps)
+data$country <- map.where("world", data$Lon, data$Lat)
+head(data)
+data <- na.omit (data)
+data_1 <- data %>% relocate(country, .before = water_veg_avg_log)
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables")
+write.csv(data_1, "1.Drought_variables.csv", row.names = FALSE)
+data <-  read.csv("Drought_bioclim_variables_30sec.csv")
+head(data)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/bioclim variables")
+png("clim_var_histo.png", width = 12, height = 10, units = 'in', res = 300)
+par(mfrow=c(4,4))
+
+hist(data$water_veg_avg_log, prob = TRUE, main = NA, xlab="log (Water stress veg.)",col = "ivory4")
+x <- seq(min(data$water_veg_avg_log), max(data$water_veg_avg_log), length = 40)
+f <- dnorm(x, mean = mean(data$water_veg_avg_log), sd = sd(data$water_veg_avg_log))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$water_repro_adj_avg_log, prob = TRUE, main = NA, xlab="log (Water stress veg.)",col = "ivory4")
+x <- seq(min(data$water_repro_adj_avg_log), max(data$water_repro_adj_avg_log), length = 40)
+f <- dnorm(x, mean = mean(data$water_repro_adj_avg_log), sd = sd(data$water_repro_adj_avg_log))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Aridity_Index , prob = TRUE, main = NA, xlab="Aridity_Index",col = "ivory4")
+x <- seq(min(data$Aridity_Index ), max(data$Aridity_Index ), length = 40)
+f <- dnorm(x, mean = mean(data$Aridity_Index ), sd = sd(data$Aridity_Index ))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Annual_Mean_Temperature, prob = TRUE, main = NA, xlab="Annual_Mean_Temperature",col = "lightblue")
+x <- seq(min(data$Annual_Mean_Temperature), max(data$Annual_Mean_Temperature), length = 40)
+f <- dnorm(x, mean = mean(data$Annual_Mean_Temperature), sd = sd(data$Annual_Mean_Temperature))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Max_Temperature_of_Warmest_Month, prob = TRUE, main = NA, xlab="Max_Temperature_of_Warmest_Month",col = "lightblue")
+x <- seq(min(data$Max_Temperature_of_Warmest_Month), max(data$Max_Temperature_of_Warmest_Month), length = 40)
+f <- dnorm(x, mean = mean(data$Max_Temperature_of_Warmest_Month), sd = sd(data$Max_Temperature_of_Warmest_Month))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Mean_Temp_of_Wettest_Quarter, prob = TRUE, main = NA, xlab="Mean_Temp_of_Wettest_Quarter",col = "lightblue")
+x <- seq(min(data$Mean_Temp_of_Wettest_Quarter), max(data$Mean_Temp_of_Wettest_Quarter), length = 40)
+f <- dnorm(x, mean = mean(data$Mean_Temp_of_Wettest_Quarter), sd = sd(data$Mean_Temp_of_Wettest_Quarter))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Mean_Temp_Driest_Quarter, prob = TRUE, main = NA, xlab="Mean_Temp_Driest_Quarter",col = "lightblue")
+x <- seq(min(data$Mean_Temp_Driest_Quarter), max(data$Mean_Temp_Driest_Quarter), length = 40)
+f <- dnorm(x, mean = mean(data$Mean_Temp_Driest_Quarter), sd = sd(data$Mean_Temp_Driest_Quarter))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$MeanTemp_Warmest_Quarter, prob = TRUE, main = NA, xlab="MeanTemp_Warmest_Quarter",col = "lightblue")
+x <- seq(min(data$MeanTemp_Warmest_Quarter), max(data$MeanTemp_Warmest_Quarter), length = 40)
+f <- dnorm(x, mean = mean(data$MeanTemp_Warmest_Quarter), sd = sd(data$MeanTemp_Warmest_Quarter))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Annual_Precipitation, prob = TRUE, main = NA, xlab="Annual_Precipitation",col = "lightblue")
+x <- seq(min(data$Annual_Precipitation), max(data$Annual_Precipitation), length = 40)
+f <- dnorm(x, mean = mean(data$Annual_Precipitation), sd = sd(data$Annual_Precipitation))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Precipitation_Wettest_Month, prob = TRUE, main = NA, xlab="Precipitation_Wettest_Month",col = "lightblue")
+x <- seq(min(data$Precipitation_Wettest_Month), max(data$Precipitation_Wettest_Month), length = 40)
+f <- dnorm(x, mean = mean(data$Precipitation_Wettest_Month), sd = sd(data$Precipitation_Wettest_Month))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Precipitation_Driest_Month_log, prob = TRUE, main = NA, xlab="log (Precipitation Driest Month)",col = "lightblue")
+x <- seq(min(data$Precipitation_Driest_Month_log), max(data$Precipitation_Driest_Month_log), length = 40)
+f <- dnorm(x, mean = mean(data$Precipitation_Driest_Month_log), sd = sd(data$Precipitation_Driest_Month_log))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Precipitation_Seasonality, prob = TRUE, main = NA, xlab="Precipitation_Seasonality",col = "lightblue")
+x <- seq(min(data$Precipitation_Seasonality), max(data$Precipitation_Seasonality), length = 40)
+f <- dnorm(x, mean = mean(data$Precipitation_Seasonality), sd = sd(data$Precipitation_Seasonality))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Precipitation_Warmest_Quarter, prob = TRUE, main = NA, xlab="Precipitation_Warmest_Quarter",col = "lightblue")
+x <- seq(min(data$Precipitation_Warmest_Quarter), max(data$Precipitation_Warmest_Quarter), length = 40)
+f <- dnorm(x, mean = mean(data$Precipitation_Warmest_Quarter), sd = sd(data$Precipitation_Warmest_Quarter))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Precipitation_Wettest_Quarter, prob = TRUE, main = NA, xlab="Precipitation_Wettest_Quarter",col = "lightblue")
+x <- seq(min(data$Precipitation_Wettest_Quarter), max(data$Precipitation_Wettest_Quarter), length = 40)
+f <- dnorm(x, mean = mean(data$Precipitation_Wettest_Quarter), sd = sd(data$Precipitation_Wettest_Quarter))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$Precipitation_Driest_Quarter_log, prob = TRUE, main = NA, xlab="log (Precipitation_Driest_Quarter)",col = "lightblue")
+x <- seq(min(data$Precipitation_Driest_Quarter_log), max(data$Precipitation_Driest_Quarter_log), length = 40)
+f <- dnorm(x, mean = mean(data$Precipitation_Driest_Quarter_log), sd = sd(data$Precipitation_Driest_Quarter_log))
+lines(x, f, col = "red", lwd = 2)
+
+hist(data$soil_m_log, prob = TRUE, main = NA, xlab="log (Soil moisture)",col = "khaki1")
+x <- seq(min(data$soil_m_log), max(data$soil_m_log), length = 40)
+f <- dnorm(x, mean = mean(data$soil_m_log), sd = sd(data$soil_m_log))
+lines(x, f, col = "red", lwd = 2)
+
+dev.off()
+```
+### Getting LD prunned snpfile
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=12:00:00
+#PBS -l pmem=48gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("/gpfs/group/jrl35/default/aayudh/gwas_reseq")
+
+library(gdsfmt)
+library(SNPRelate)
+
+genofile <- snpgdsOpen('Sorghum_1757g_2ndtry.gds')
+sample.id <- read.gdsn(index.gdsn(genofile, 'sample.id'))
+chromosome.id <- read.gdsn(index.gdsn(genofile, 'snp.chromosome'))
+snp.position <- read.gdsn(index.gdsn(genofile, 'snp.position'))
+
+set.seed(1000)
+snpset = snpgdsLDpruning(genofile,maf=0.05,missing.rate=0.5,ld.threshold=0.4, slide.max.bp=50000)
+snp.id = unlist(snpset)
+
+setwd("~/work/rda_drought")
+traits <- data.frame(read.csv('1.Drought_variables.csv', header=TRUE))
+head(traits)
+
+#mySNPs <- snpgdsSelectSNP(genofile, traits$LIB, maf = 0.05, missing.rate = 0.5)
+#length(mySNPs)
+
+mySNPmatrix <- snpgdsGetGeno(genofile, sample.id = traits$LIB, snp.id = snp.id, with.id = TRUE)
+dim(mySNPmatrix$genotype)
+
+#these lines create the bed file for gemma
+rs <- data.frame(chr = chromosome.id[snp.id], positions = snp.position[snp.id])
+SNPs_bim <- data.frame(paste0('rs_', rs$chr, '_', rs$positions), t(mySNPmatrix$genotype))
+dim(SNPs_bim)
+length(SNPs_bim)
+SNPs_bim[1:10,1:10]
+
+data_2 <- SNPs_bim[,2:ncol(SNPs_bim)]
+colnames(data_2) <- mySNPmatrix$sample.id
+data_3 <- cbind(SNPs_bim[,1],data_2)
+dim(data_3)
+data_3[1:10,1:10]
+
+library(data.table)
+data_snp <- transpose(data_3)
+colnames(data_snp) <- rownames(data_3)
+rownames(data_snp) <- colnames(data_3)
+colnames(data_snp) <- data_snp[1,]
+dim(data_snp)
+df <- data_snp[2:nrow(data_snp),1:ncol(data_snp)]
+dim(df)
+df[1:10,1:10]
+
+df <- df[,1:ncol(df)]
+
+write.csv(df,"snpLDprunned.csv")
+```
+### Check correlation matrix and create drought.rda
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=12:00:00
+#PBS -l pmem=192gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("~/work/rda_drought")
+library(psych)    # Used to investigate correlations among predictors
+library(permute)
+library(lattice)
+library(vegan)
+
+env <- read.csv("1.Drought_variables.csv")
+pred <- env
+
+pred <- pred[,6:21]
+colnames(pred) <- c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","MTWaQ","AP","PWM","PDM","PS","PWQ","PDQ","PWaQ","SM","AI")
+
+#based on the cor matrix we are removing MTWaQ, PWQ, PDQ, AP
+pred = within(pred, rm(MTWaQ, PWQ, PDQ, AP))
+tiff("cor.matrix.tiff", width = 13, height = 7, units = 'in', res = 300)
+pairs.panels(pred, scale=T)
+dev.off()
+
+setwd("/gpfs/group/jrl35/default/aayudh/rda_drought")
+df <- read.csv("snpLDprunned.csv", row.names = 1)
+gen.imp <- apply(df, 2, function(x) replace(x, is.na(x), as.numeric(names(which.max(table(x))))))
+
+drought.rda <- rda(gen.imp ~ ., data=pred, scale=T)
+
+#setwd("/gpfs/group/jrl35/default/aayudh/rda_drought")
+setwd("~/work/rda_drought")
+saveRDS(drought.rda, file="drought_rda.RData")
+
+ddf <-  drought.rda$CCA$v
+RDA_values<- as.data.frame(ddf)
+write.csv(RDA_values,"RDA_values.csv")
+```
+### Get SNP candidates for drought.rda
+
+
+
 
