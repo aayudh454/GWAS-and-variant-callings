@@ -3675,7 +3675,7 @@ cor.test(pairs_final$genedist,pairs_final$HS_diff, method="pearson")
 -----
 <div id='id-section15'/>
 
-## Chapter 14: Redundancy analysis (RDA) for drought
+## Chapter 15: Redundancy analysis (RDA) for drought
 
 ### Getting climate variables
 
