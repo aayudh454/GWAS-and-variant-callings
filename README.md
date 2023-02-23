@@ -29,7 +29,7 @@
 
 * [Page 14 2023-09-02](#id-section14). Chapter14: Sampling (closely related but high HS difference)
 
-* [Page 15 2023-23-02](#id-section14). Chapter15: Redundancy analysis (RDA) for drought
+* [Page 15 2023-23-02](#id-section15). Chapter15: Redundancy analysis (RDA) for drought
 
 ------
 <div id='id-section1'/>
