@@ -3960,3 +3960,177 @@ write.csv(RDA_values,"RDA_values.csv")
 
 
 
+
+### Plotting 
+```
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/RDA_drought")
+list.files()
+library(psych)    # Used to investigate correlations among predictors
+library(permute) 
+library(lattice)
+library(vegan)  
+
+drought.rda <- readRDS("drought_rda.RData")
+env <- read.csv("1.RDA_Drought_variables.csv")
+pred <- env
+pred <- pred[,7:18]
+colnames(pred) <- c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","PWM","PDM","PS","PWaQ","SM","AI")
+#based on the cor matrix we are removing MTWaQ, PWQ, PDQ, AP
+#pred = within(pred, rm(MTWaQ, PWQ, PDQ, AP))
+
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/RDA_drought")
+tiff("cor.matrix.tiff", width = 13, height = 7, units = 'in', res = 300)
+pairs.panels(pred, scale=T)
+dev.off()
+
+ddf <-  drought.rda$CCA$v
+RDA_values<- as.data.frame(ddf)
+
+write.csv(RDA_values,"RDA_values.csv")
+
+RDA_values <- read.csv("RDA_values.csv")
+
+png("screeplot.png", width = 4, height = 7, units = 'in', res = 300)
+screeplot(drought.rda)
+dev.off()
+
+png("RDA1_2.png", width = 13, height = 7, units = 'in', res = 300)
+par(mfrow=c(1,2))
+plot(drought.rda, scaling=3)          # default is axes 1 and 2
+plot(drought.rda, choices = c(1, 3), scaling=3)  # axes 1 and 3
+dev.off()
+
+levels(env$Continent) <- c("America","Asia","East Africa","Southern Africa","West Africa")
+Continent <- env$Continent
+bg <- c("#ff7f00","#1f78b4","#ffff33","#a6cee3","#33a02c") 
+
+# axes 1 & 2
+png("rda1_2_continent.png", width = 13, height = 8, units = 'in', res = 300)
+par(mfrow=c(1,2))
+plot(drought.rda, type="n", scaling=3)
+points(drought.rda, display="species", pch=20, cex=0.7, col="gray32", scaling=3)           # the SNPs
+points(drought.rda, display="sites", pch=21, cex=1.3, col="gray32", scaling=3, bg=bg[Continent]) # the wolves
+text(drought.rda, scaling=3, display="bp", col="#0868ac", cex=1)                           # the predictors
+legend("bottomright", legend=levels(Continent), bty="n", col="gray32", pch=21, cex=1, pt.bg=bg)
+
+# axes 1 & 3
+plot(drought.rda, type="n", scaling=3, choices=c(1,3))
+points(drought.rda, display="species", pch=20, cex=0.7, col="gray32", scaling=3, choices=c(1,3))
+points(drought.rda, display="sites", pch=21, cex=1.3, col="gray32", scaling=3, bg=bg[Continent], choices=c(1,3))
+text(drought.rda, scaling=3, display="bp", col="#0868ac", cex=1, choices=c(1,3))
+#legend("bottomright", legend=levels(Continent), bty="n", col="gray32", pch=21, cex=1, pt.bg=bg)
+dev.off()
+
+load.rda <- scores(drought.rda, choices=c(1:3), display="species")
+
+png("Loadings on RDA.png", width = 13, height = 7, units = 'in', res = 300)
+par(mfrow=c(1,4))
+screeplot(drought.rda)
+hist(load.rda[,1], main="Loadings on RDA1")
+hist(load.rda[,2], main="Loadings on RDA2")
+hist(load.rda[,3], main="Loadings on RDA3") 
+dev.off()
+
+cand <- read.csv("1.cand.csv")
+#Investigate the candidates= if you get any then do this analysis
+length(cand$snp[duplicated(cand$snp)])  
+
+foo <- cbind(cand$axis, duplicated(cand$snp)) 
+table(foo[foo[,1]==1,2]) # no duplicates on axis 1
+table(foo[foo[,1]==2,2]) #  no duplicates on axis 2
+table(foo[foo[,1]==3,2]) # 6 duplicates on axis 3
+cand <- cand[!duplicated(cand$snp),] 
+
+##--------------------
+cand <- read.csv("1.cand.csv")
+head(cand)
+
+#Next, we’ll see which of the predictors each candidate SNP is most strongly correlated with:
+for (i in 1:length(cand$snp)) {
+  bar <- cand[i,]
+  cand[i,16] <- names(which.max(abs(bar[4:15]))) # gives the variable
+  cand[i,17] <- max(abs(bar[4:15]))              # gives the correlation
+}
+
+colnames(cand)[16] <- "predictor"
+colnames(cand)[17] <- "correlation"
+
+gg <- table(cand$predictor) 
+write.table(gg , file = "olstab.csv", sep = ",", quote = FALSE, row.names = F)
+
+gg <- read.csv("olstab.csv")
+head(gg)
+gg1 <- gg[order(-gg$Freq),]
+gg1$percent <- (gg1$Freq/sum(gg1$Freq))*100
+gg1$percent <- round(gg1$percent, digits = 2)
+
+
+library("gridExtra")
+tiff("predictor.tiff", width = 3, height = 6, units = 'in', res = 300)
+par(family="Times")
+grid.table(gg1)
+dev.off()
+
+#Plot the SNPs
+
+sel <- cand$snp
+env <- cand$predictor
+env[env=="WSvg"] <- '#1f78b4'
+env[env=="WSrepro"] <- '#a6cee3'
+env[env=="AMT"] <- '#6a3d9a'
+env[env=="MTWM"] <- '#e31a1c'
+env[env=="MTWQ"] <- '#33a02c'
+env[env=="MTDQ"] <- '#ffff33'
+env[env=="PWM"] <- '#ff7f00'
+env[env=="PDM"] <- 'cadetblue'
+env[env=="PS"] <- '#fb9a99'
+env[env=="PWaQ"] <- 'blue'
+env[env=="SM"] <- 'green'
+env[env=="AI"] <- 'skyblue'
+
+col.pred <- rownames(drought.rda$CCA$v) # pull the SNP names
+col.pred = as.factor(col.pred)
+
+for (i in 1:length(sel)) {           # color code candidate SNPs
+  foo <- match(sel[i],col.pred)
+  col.pred[foo] <- env[i]
+}
+
+col.pred[grep("chr",col.pred)] <- '#f1eef6' # non-candidate SNPs
+empty <- col.pred
+empty[grep("#f1eef6",empty)] <- rgb(0,1,0, alpha=0) # transparent
+empty.outline <- ifelse(empty=="#00FF0000","#00FF0000","gray32")
+bg <- c('#1f78b4','#a6cee3','#6a3d9a','#e31a1c','#33a02c','#ffff33',
+        '#ff7f00','cadetblue','#fb9a99','blue','green','skyblue')
+
+
+png("RDA_SNPbased.png", width = 13, height = 7, units = 'in', res = 300)
+par(mfrow=c(1,2))
+# axes 1 & 2 
+plot(drought.rda, type="n", scaling=3, xlim=c(-1,1), ylim=c(-1,1))
+points(drought.rda, display="species", pch=21, cex=1, col="gray32", bg=col.pred, scaling=3)
+points(drought.rda, display="species", pch=21, cex=1, col=empty.outline, bg=empty, scaling=3)
+text(drought.rda, scaling=3, display="bp", col="#0868ac", cex=1)
+legend("bottomright", legend=c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","PWM","PDM","PS","PWaQ","SM","AI"), bty="n", col="gray32", pch=21, cex=1, pt.bg=bg)
+
+# axes 1 & 3
+plot(drought.rda, type="n", scaling=3, xlim=c(-1,1), ylim=c(-1,1), choices=c(1,3))
+points(drought.rda, display="species", pch=21, cex=1, col="gray32", bg=col.pred, scaling=3, choices=c(1,3))
+points(drought.rda, display="species", pch=21, cex=1, col=empty.outline, bg=empty, scaling=3, choices=c(1,3))
+text(drought.rda, scaling=3, display="bp", col="#0868ac", cex=1, choices=c(1,3))
+#legend("bottomright", legend=c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","PWM","PDM","PS","PWaQ","SM","AI"), bty="n", col="gray32", pch=21, cex=1, pt.bg=bg)
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+
