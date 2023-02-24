@@ -3957,9 +3957,85 @@ write.csv(RDA_values,"RDA_values.csv")
 ```
 ### Get SNP candidates for drought.rda
 
+```
+#!/usr/bin/env Rscript
 
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=12:00:00
+#PBS -l pmem=192gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
 
+setwd("~/work/rda_drought")
+library(psych)    # Used to investigate correlations among predictors
+library(permute)
+library(lattice)
+library(vegan)    # Used to run RDA
 
+#setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/Drought_multivar_envGWAS/RDA/test")
+env <- read.csv("1.Drought_variables.csv")
+pred <- env
+pred <- pred[,6:21]
+colnames(pred) <- c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","MTWaQ","AP","PWM","PDM","PS","PWQ","PDQ","PWaQ","SM","AI")
+
+#based on the cor matrix we are removing MTWaQ, PWQ, PDQ, AP
+pred = within(pred, rm(MTWaQ, PWQ, PDQ, AP))
+
+setwd("/gpfs/group/jrl35/default/aayudh/rda_drought")
+df <- read.csv("snpLDprunned.csv", row.names = 1)
+gen.imp <- apply(df, 2, function(x) replace(x, is.na(x), as.numeric(names(which.max(table(x))))))
+
+drought.rda <- rda(gen.imp ~ ., data=pred, scale=T)
+
+load.rda <- scores(drought.rda, choices=c(1:3), display="species")
+
+outliers <- function(x,z){
+  lims <- mean(x) + c(-1, 1) * z * sd(x)     # find loadings +/-z sd from mean loading     
+  x[x < lims[1] | x > lims[2]]               # locus names in these tails
+}
+
+cand1 <- outliers(load.rda[,1],3) # 38
+cand2 <- outliers(load.rda[,2],3) # 69
+cand3 <- outliers(load.rda[,3],3) # 34
+
+ncand <- length(cand1) + length(cand2) + length(cand3)
+ncand
+
+cand1 <- cbind.data.frame(rep(1,times=length(cand1)), names(cand1), unname(cand1))
+cand2 <- cbind.data.frame(rep(2,times=length(cand2)), names(cand2), unname(cand2))
+cand3 <- cbind.data.frame(rep(3,times=length(cand3)), names(cand3), unname(cand3))
+
+colnames(cand1) <- colnames(cand2) <- colnames(cand3) <- c("axis","snp","loading")
+
+cand <- rbind(cand1, cand2, cand3)
+cand$snp <- as.character(cand$snp)
+
+foo <- matrix(nrow=(ncand), ncol=12)  # 12 columns for 16 predictors
+colnames(foo) <- c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","PWM","PDM","PS","PWaQ","SM","AI")
+
+for (i in 1:length(cand$snp)) {
+  nam <- cand[i,2]
+  snp.gen <- gen.imp[,nam]
+  foo[i,] <- apply(pred,2,function(x) cor(x,snp.gen))
+  }
+
+cand <- cbind.data.frame(cand,foo)
+head(cand)
+
+#Investigate the candidates= if you get any then do this analysis
+length(cand$snp[duplicated(cand$snp)])
+
+foo <- cbind(cand$axis, duplicated(cand$snp))
+table(foo[foo[,1]==1,2]) # no duplicates on axis 1
+table(foo[foo[,1]==2,2]) #  no duplicates on axis 2
+table(foo[foo[,1]==3,2]) # 6 duplicates on axis 3
+cand <- cand[!duplicated(cand$snp),]
+
+setwd("~/work/rda_drought")
+write.csv(cand, "1.cand.csv")
+```
 
 ### Plotting 
 ```
@@ -4122,15 +4198,3 @@ text(drought.rda, scaling=3, display="bp", col="#0868ac", cex=1, choices=c(1,3))
 #legend("bottomright", legend=c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","PWM","PDM","PS","PWaQ","SM","AI"), bty="n", col="gray32", pch=21, cex=1, pt.bg=bg)
 dev.off()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
