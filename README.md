@@ -4309,3 +4309,360 @@ data1[, "type"] <- rs_split1$X2
 head(data1)
 write.csv(data1, "non_synonymous_missense_variant_clean.csv")
 ```
+
+### Merging snpeff calls with envGWAS hits
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/manhattan plot")
+list.files()
+Chr10corr <- read.csv("Reseq_preds_all_chr10_corrected.csv", header=T)
+head(Chr10corr)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/SNPEFF/syn and non-syn")
+list.files()
+
+syn <- read.csv("synonymous_variant.txt_clean.csv")
+head(syn)
+syn[, "chr"] = substring(syn$chr, 4)
+rs <- data.frame(paste0('rs_', syn$chr, '_', syn$ps)) 
+syn[, "X"] = rs
+names(syn)[1]<-paste("rs")
+head(syn)
+syn <- syn[,1:6]
+syn_merged_HS <- merge(syn,Chr10corr, by = "rs")
+head(syn_merged_HS)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/SNPEFF/syn and non-syn")
+#write.csv(syn_merged_HS,"syn_merged_HS.csv")
+
+non_syn <- read.csv("non_synonymous_missense_variant_clean.csv")
+head(non_syn)
+
+head(non_syn)
+non_syn[, "chr"] = substring(non_syn$chr, 4)
+rs <- data.frame(paste0('rs_', non_syn$chr, '_', non_syn$ps)) 
+non_syn[, "X"] = rs
+names(non_syn)[1]<-paste("rs")
+head(non_syn)
+non_syn_merged_HS <- merge(non_syn,Chr10corr, by = "rs")
+head(non_syn_merged_HS)
+#write.csv(non_syn_merged_HS,"non_syn_merged_HS.csv")
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/SNPEFF/syn and non-syn")
+syn <- read.csv("1.syn_merged_HS.csv")
+syn$log_pwald = -log10(syn$p_wald)
+head(syn)
+
+syn1 <- subset(syn, syn$type == "synonymous_variant")
+
+non_syn <- read.csv("1. non_syn_merged_HS.csv")
+non_syn$log_pwald = -log10(non_syn$p_wald)
+head(non_syn)
+
+non_syn1 <- subset(non_syn, non_syn$type == "missense_variant")
+
+data <- rbind(syn1,non_syn1)
+head(data)
+
+## https://bookdown.org/ybrandvain/Applied-Biostats/perm1.html 
+
+SoilSciGuylabs <- c("Non-synonymous", "Synonymous")
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/SNPEFF/syn and non-syn")
+tiff("synVSnon-syn.tiff", width = 5, height = 5, units = 'in', res = 300)
+library(ggplot2)
+library(ggforce)
+ggplot(data, aes(x = type, y =  log_pwald, color = type, shape = type))+
+  geom_sina(show.legend = FALSE)+ # if you don't have ggforce you can use geom_jitter
+  stat_summary(color = "black",show.legend = FALSE)+
+  labs(x=NULL,y="-log10 (pvalue)")+
+scale_x_discrete(labels= SoilSciGuylabs)+
+scale_color_manual(values=c("#999999", "#E69F00"))+
+  theme_classic() +
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_text(colour="black", size = 16))
+dev.off()
+```
+
+### Chromosome rearrangement
+
+```
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/SNPEFF/syn and non-syn")
+list.files()
+
+syn <- read.csv("1.syn_merged_HS.csv")
+head(syn)
+
+syn1 <- subset(syn, syn$type == "synonymous_variant")
+dim(syn1)
+tail(syn1)
+
+non_syn <- read.csv("1. non_syn_merged_HS.csv")
+non_syn1 <- subset(non_syn, non_syn$type == "missense_variant")
+
+syn_nonsyn <- rbind(syn1,non_syn1)
+dim(syn_nonsyn)
+
+##arrange chromosome wise
+chr1 <- subset(syn_nonsyn, syn_nonsyn$chr == "1")
+chr1 <- unique(setDT(chr1)[order(ps, -ps)], by = "ps")
+head(chr1)
+
+chr2 <- subset(syn_nonsyn, syn_nonsyn$chr == "2")
+chr2 <- unique(setDT(chr2)[order(ps, -ps)], by = "ps")
+head(chr2)
+
+chr3 <- subset(syn_nonsyn, syn_nonsyn$chr == "3")
+chr3 <- unique(setDT(chr3)[order(ps, -ps)], by = "ps")
+head(chr3)
+
+chr4 <- subset(syn_nonsyn, syn_nonsyn$chr == "4")
+chr4 <- unique(setDT(chr4)[order(ps, -ps)], by = "ps")
+head(chr4)
+
+chr5 <- subset(syn_nonsyn, syn_nonsyn$chr == "5")
+chr5 <- unique(setDT(chr5)[order(ps, -ps)], by = "ps")
+head(chr5)
+
+chr6 <- subset(syn_nonsyn, syn_nonsyn$chr == "6")
+chr6 <- unique(setDT(chr6)[order(ps, -ps)], by = "ps")
+head(chr6)
+
+chr7 <- subset(syn_nonsyn, syn_nonsyn$chr == "7")
+chr7 <- unique(setDT(chr7)[order(ps, -ps)], by = "ps")
+head(chr7)
+
+chr8 <- subset(syn_nonsyn, syn_nonsyn$chr == "8")
+chr8 <- unique(setDT(chr8)[order(ps, -ps)], by = "ps")
+head(chr8)
+
+chr9 <- subset(syn_nonsyn, syn_nonsyn$chr == "9")
+chr9 <- unique(setDT(chr9)[order(ps, -ps)], by = "ps")
+head(chr9)
+
+chr10 <- subset(syn_nonsyn, syn_nonsyn$chr == "10")
+chr10 <- unique(setDT(chr10)[order(ps, -ps)], by = "ps")
+head(chr10)
+
+chr1_10 <- rbind(chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10)
+dim(chr1_10)
+tail(chr1_10)
+head(chr1_10)
+
+setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/SNPEFF/syn and non-syn")
+write.csv(chr1_10,"1.Syn_Nonsyn_chr_rearranged.csv",row.names = FALSE)
+```
+
+### Enrichment analysis with MAF corrections
+
+```
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment")
+list.files()
+
+data1 <- read.csv("1.Syn_Nonsyn_chr_rearranged.csv")
+data <- data1[,1:9]
+head(data)
+
+data$logp <- -log10(data$p_wald)
+
+Actual_fold_enrichment_synTOnonsyn <- quantile(subset(data, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(data, type == "missense_variant")$logp, probs = 0.95)
+Actual_fold_enrichment_synTOnonsyn
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- data[sample(nrow(data), 1), ]
+  f <- rbind(data[which(data$rs == random_position$rs, arr.ind=TRUE):nrow(data),],data[1:(which(data$rs == random_position$rs, arr.ind=TRUE)-1),])
+  data[,"type"] <- f$type 
+  fold_enrichment <- quantile(subset(data, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(data, type == "missense_variant")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+synBYnonsyn  <- as.data.frame(dddf)
+#write.csv(synBYnonsyn, "synBYnonsyn.csv", row.names = FALSE)
+
+synBYnonsyn$ratio <- paste("synBYnonsyn")
+
+#fold_enrich <- rbind(nonsynBYsyn,synBYnonsyn)
+
+#write.csv(fold_enrich, "1.fold_enrichment.csv", row.names = FALSE)
+
+###Now miniAF correction
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment")
+list.files()
+
+data1 <- read.csv("1.Syn_Nonsyn_chr_rearranged.csv")
+data <- data1[,1:9]
+head(data)
+
+##Minor allele frequency correction, whatever aboive 0.5 af just deduct 0.5.
+data_below_.5 <- subset(data, af < .5)
+data_above_.5 <- subset(data, af > .5)
+
+data_above_.5$af <- data_above_.5$af -0.5 
+
+data_cortd <- rbind(data_below_.5,data_above_.5)
+
+data_cortd <- data_cortd[with(data_cortd,order(chr)),]
+
+##minaf 0-0.1
+minaf_0.1 <- subset(data_cortd, af < .1) 
+minaf_0.1$logp <- -log10(minaf_0.1$p_wald)
+
+Actual_fold_enrichment_minaf_0.1 <- quantile(subset(minaf_0.1, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.1, type == "missense_variant")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.1
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.1[sample(nrow(minaf_0.1), 1), ]
+  f <- rbind(minaf_0.1[which(minaf_0.1$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.1),],minaf_0.1[1:(which(minaf_0.1$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.1[,"type"] <- f$type 
+  fold_enrichment <- quantile(subset(minaf_0.1, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.1, type == "missense_variant")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+synBYnonsyn_minaf_0.1  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(synBYnonsyn_minaf_0.1, "synBYnonsyn_minaf_0.1.csv", row.names = FALSE)
+
+synBYnonsyn_minaf_0.1$ratio <- paste("synBYnonsyn_minaf_0.1")
+
+##minaf 0.1-0.2
+minaf_0.2 <- subset(data_cortd, af < 0.2 & af > 0.1) 
+minaf_0.2$logp <- -log10(minaf_0.2$p_wald)
+
+Actual_fold_enrichment_minaf_0.2 <- quantile(subset(minaf_0.2, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.2, type == "missense_variant")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.2
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.2[sample(nrow(minaf_0.2), 1), ]
+  f <- rbind(minaf_0.2[which(minaf_0.2$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.2),],minaf_0.2[1:(which(minaf_0.2$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.2[,"type"] <- f$type 
+  fold_enrichment <- quantile(subset(minaf_0.2, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.2, type == "missense_variant")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+synBYnonsyn_minaf_0.2  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(synBYnonsyn_minaf_0.2, "synBYnonsyn_minaf_0.2.csv", row.names = FALSE)
+
+synBYnonsyn_minaf_0.2$ratio <- paste("synBYnonsyn_minaf_0.2")
+
+
+##minaf 0.2-0.3
+minaf_0.3 <- subset(data_cortd, af < 0.3 & af > 0.2) 
+minaf_0.3$logp <- -log10(minaf_0.3$p_wald)
+
+Actual_fold_enrichment_minaf_0.3 <- quantile(subset(minaf_0.3, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.3, type == "missense_variant")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.3
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.3[sample(nrow(minaf_0.3), 1), ]
+  f <- rbind(minaf_0.3[which(minaf_0.3$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.3),],minaf_0.3[1:(which(minaf_0.3$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.3[,"type"] <- f$type 
+  fold_enrichment <- quantile(subset(minaf_0.3, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.3, type == "missense_variant")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+synBYnonsyn_minaf_0.3  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(synBYnonsyn_minaf_0.3, "synBYnonsyn_minaf_0.3.csv", row.names = FALSE)
+
+synBYnonsyn_minaf_0.3$ratio <- paste("synBYnonsyn_minaf_0.3")
+
+
+
+##minaf 0.3-0.4
+minaf_0.4 <- subset(data_cortd, af < 0.4 & af > 0.3) 
+minaf_0.4$logp <- -log10(minaf_0.4$p_wald)
+
+Actual_fold_enrichment_minaf_0.4 <- quantile(subset(minaf_0.4, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.4, type == "missense_variant")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.4
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.4[sample(nrow(minaf_0.4), 1), ]
+  f <- rbind(minaf_0.4[which(minaf_0.4$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.4),],minaf_0.4[1:(which(minaf_0.4$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.4[,"type"] <- f$type 
+  fold_enrichment <- quantile(subset(minaf_0.4, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.4, type == "missense_variant")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+synBYnonsyn_minaf_0.4  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(synBYnonsyn_minaf_0.4, "synBYnonsyn_minaf_0.4.csv", row.names = FALSE)
+
+synBYnonsyn_minaf_0.4$ratio <- paste("synBYnonsyn_minaf_0.4")
+
+
+##minaf 0.4-0.5
+minaf_0.5 <- subset(data_cortd, af < 0.5 & af > 0.4) 
+minaf_0.5$logp <- -log10(minaf_0.5$p_wald)
+
+Actual_fold_enrichment_minaf_0.5 <- quantile(subset(minaf_0.5, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.5, type == "missense_variant")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.5
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.5[sample(nrow(minaf_0.5), 1), ]
+  f <- rbind(minaf_0.5[which(minaf_0.5$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.5),],minaf_0.5[1:(which(minaf_0.5$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.5[,"type"] <- f$type 
+  fold_enrichment <- quantile(subset(minaf_0.5, type == "synonymous_variant")$logp, probs = 0.95)/quantile(subset(minaf_0.5, type == "missense_variant")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+synBYnonsyn_minaf_0.5  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(synBYnonsyn_minaf_0.5, "synBYnonsyn_minaf_0.5.csv", row.names = FALSE)
+
+synBYnonsyn_minaf_0.5$ratio <- paste("synBYnonsyn_minaf_0.5")
+
+
+###bind all
+
+fold_enrich <- rbind(synBYnonsyn,synBYnonsyn_minaf_0.1,synBYnonsyn_minaf_0.2,synBYnonsyn_minaf_0.3,synBYnonsyn_minaf_0.4,synBYnonsyn_minaf_0.5)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(fold_enrich, "1.fold_enrichment_MAF_correction_with_main.csv", row.names = FALSE)
+
+df <- read.csv("1.fold_enrichment_MAF_correction_with_main.csv") 
+head(df)
+##plotiing
+library(ggplot2)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(gridtext)
+library(palmerpenguins)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+tiff("Fold_enrich_HS_100perm_MAFcor.tiff", width = 5, height = 6, units = 'in', res = 300)
+ggplot(df, aes(x=X95., y=ratio, color=ratio))+
+  geom_point(size=1)+
+  labs(x="Fold enrichment",y=NULL)+
+  scale_x_continuous(breaks=seq(0.964,1.040,0.025))+
+  scale_color_manual(values = c("#B4AF46", "#B4464B","#B47846","#7846B4","#82B446","deeppink"))+
+  geom_vline(xintercept = 1, linetype="dashed", color = "slategrey", size=1)+
+  annotate("pointrange", x = Actual_fold_enrichment_synTOnonsyn , y = 1, ymin = 1.010, ymax = 1.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.1 , y = 2, ymin = 1.010, ymax = 1.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.2 , y = 3, ymin = 2.010, ymax = 2.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.3 , y = 4, ymin = 1.010, ymax = 1.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.4 , y = 5, ymin = 2.010, ymax = 2.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.5 , y = 6, ymin = 2.010, ymax = 2.008,colour = "#4682B4",size = 2)+
+  theme_classic()+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+dev.off()
+```
+
