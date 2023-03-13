@@ -31,6 +31,8 @@
 
 * [Page 15 2023-23-02](#id-section15). Chapter15: Redundancy analysis (RDA) for drought
 
+* [Page 16 2023-23-03](#id-section16). Chapter16: Enrichment analysis
+
 ------
 <div id='id-section1'/>
 
@@ -4197,4 +4199,113 @@ points(drought.rda, display="species", pch=21, cex=1, col=empty.outline, bg=empt
 text(drought.rda, scaling=3, display="bp", col="#0868ac", cex=1, choices=c(1,3))
 #legend("bottomright", legend=c("WSvg","WSrepro","AMT","MTWM","MTWQ","MTDQ","PWM","PDM","PS","PWaQ","SM","AI"), bty="n", col="gray32", pch=21, cex=1, pt.bg=bg)
 dev.off()
+```
+
+-----
+<div id='id-section16'/>
+
+## Chapter 16: Enrichment Analysis
+
+### Extracting variants from snpeff SNP version
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+WORKINGDIR=/gpfs/group/jrl35/default/aayudh/snpeff/snp
+cd $WORKINGDIR
+
+grep missense_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_synonymous_missense_variant.txt
+
+grep initiator_codon_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_synonymous_initiator_codon_variant.txt
+
+grep stop_retained_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_synonymous_stop_retained_variant.txt
+
+grep synonymous_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > synonymous_variant.txt
+
+grep start_retained_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > synonymous_start_retained.txt
+
+grep stop_retained_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > synonymous_stop_retained_variant.txt
+```
+### Making syno and non-syno datset
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("/gpfs/group/jrl35/default/aayudh/snpeff/snp/compare_synoVSnon_syn")
+data <- read.delim("synonymous_variant.txt", header=FALSE)
+dim(data)
+data1 <- data[,1:8]
+data1 = within(data1, rm(V3,V6,V7))
+head(data1)
+names(data1)[1]<-paste("chr")
+names(data1)[2]<-paste("ps")
+names(data1)[3]<-paste("REF")
+names(data1)[4]<-paste("ALT")
+names(data1)[5]<-paste("type")
+head(data1)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(data1$type), ";", fixed = TRUE)))
+head(rs_split)
+
+data1[, "type"] <- rs_split$X11
+head(data1)
+rs_split1 <- data.frame(do.call("rbind", strsplit(as.character(data1$type), "|", fixed = TRUE)))
+head(rs_split1)
+data1[, "type"] <- rs_split1$X2
+
+head(data1)
+write.csv(data1, "synonymous_variant.txt_clean.csv")
+```
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("/gpfs/group/jrl35/default/aayudh/snpeff/snp/compare_synoVSnon_syn")
+data <- read.delim("non_synonymous_missense_variant.txt", header=FALSE)
+dim(data)
+data1 <- data[,1:8]
+data1 = within(data1, rm(V3,V6,V7))
+head(data1)
+names(data1)[1]<-paste("chr")
+names(data1)[2]<-paste("ps")
+names(data1)[3]<-paste("REF")
+names(data1)[4]<-paste("ALT")
+names(data1)[5]<-paste("type")
+head(data1)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(data1$type), ";", fixed = TRUE)))
+head(rs_split)
+
+data1[, "type"] <- rs_split$X11
+head(data1)
+rs_split1 <- data.frame(do.call("rbind", strsplit(as.character(data1$type), "|", fixed = TRUE)))
+head(rs_split1)
+data1[, "type"] <- rs_split1$X2
+
+head(data1)
+write.csv(data1, "non_synonymous_missense_variant_clean.csv")
 ```
