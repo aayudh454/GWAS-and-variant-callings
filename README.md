@@ -33,6 +33,8 @@
 
 * [Page 16 2023-23-03](#id-section16). Chapter16: Enrichment analysis
 
+* [Page 17 2023-28-03](#id-section17). Chapter17: Genic Vs Intergenic enrichment 
+
 ------
 <div id='id-section1'/>
 
@@ -4665,4 +4667,95 @@ ggplot(df, aes(x=X95., y=ratio, color=ratio))+
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 dev.off()
 ```
+
+-----
+<div id='id-section17'/>
+
+## Chapter 17: Genic VS Intergenic enrichment
+
+### Extract all the genic region variant 
+
+What are genic variants? - Synonymous, non-synonumous, initiator codon, UTRs, non-coding intron and splice variants. Rest everything is intergenic.
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+WORKINGDIR=/gpfs/group/jrl35/default/aayudh/snpeff/snp
+cd $WORKINGDIR
+
+grep missense_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_synonymous_missense_variant.txt
+
+grep initiator_codon_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_synonymous_initiator_codon_variant.txt
+
+grep stop_retained_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_synonymous_stop_retained_variant.txt
+
+grep synonymous_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > synonymous_variant.txt
+
+grep start_retained_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > synonymous_start_retained.txt
+
+grep stop_retained_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > synonymous_stop_retained_variant.txt
+
+grep 3_prime_UTR_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > 3_prime_UTR_variant.txt
+
+grep 5_prime_UTR_premature_start_codon_gain_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > 5_prime_UTR_premature_start_codon_gain_variant.txt
+
+grep 5_prime_UTR_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > 5_prime_UTR_variant.txt
+
+grep non_coding_transcript_exon_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > non_coding_transcript_exon_variant.txt
+
+grep splice_acceptor_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > splice_acceptor_variant.txt
+
+grep splice_donor_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > splice_donor_variant.txt
+
+grep splice_region_variant Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.ann.vcf > splice_region_variant.txt
+```
+
+### Clean each variant file
+
+```
+#!/usr/bin/env Rscript
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+setwd("/gpfs/group/jrl35/default/aayudh/snpeff/snp")
+data <- read.delim("3_prime_UTR_variant.txt", header=FALSE)
+dim(data)
+data1 <- data[,1:8]
+data1 = within(data1, rm(V3,V6,V7))
+head(data1)
+names(data1)[1]<-paste("chr")
+names(data1)[2]<-paste("ps")
+names(data1)[3]<-paste("REF")
+names(data1)[4]<-paste("ALT")
+names(data1)[5]<-paste("type")
+head(data1)
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(data1$type), ";", fixed = TRUE)))
+head(rs_split)
+
+data1[, "type"] <- rs_split$X11
+head(data1)
+rs_split1 <- data.frame(do.call("rbind", strsplit(as.character(data1$type), "|", fixed = TRUE)))
+head(rs_split1)
+data1[, "type"] <- rs_split1$X2
+
+head(data1)
+setwd("/gpfs/group/jrl35/default/aayudh/snpeff/snp/genic")
+write.csv(data1, "3_prime_UTR_variant_clean.csv", row.names = FALSE)
+```
+
 
