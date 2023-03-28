@@ -4758,4 +4758,378 @@ setwd("/gpfs/group/jrl35/default/aayudh/snpeff/snp/genic")
 write.csv(data1, "3_prime_UTR_variant_clean.csv", row.names = FALSE)
 ```
 
+### Combine all genic and rest name it intergenic
 
+```
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/eGWAS_revised list/manhattan plot")
+list.files()
+Chr10corr <- read.csv("Reseq_preds_all_chr10_corrected.csv", header=T)
+head(Chr10corr)
+reseq_HS <- Chr10corr[order(Chr10corr$p_wald),]
+head(reseq_HS)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/SNPEFF/syn and non-syn")
+list.files()
+
+syn <- read.csv("synonymous_variant.txt_clean.csv")
+head(syn)
+syn[, "chr"] = substring(syn$chr, 4)
+rs <- data.frame(paste0('rs_', syn$chr, '_', syn$ps)) 
+syn[, "X"] = rs
+names(syn)[6]<-paste("rs")
+syn$geneic_intergenic <- paste('genic')
+head(syn)
+
+non_syn <- read.csv("non_synonymous_missense_variant_clean.csv")
+head(non_syn)
+non_syn[, "chr"] = substring(non_syn$chr, 4)
+rs <- data.frame(paste0('rs_', non_syn$chr, '_', non_syn$ps))
+non_syn[, "X"] = rs
+names(non_syn)[6]<-paste("rs")
+non_syn$geneic_intergenic <- paste('genic')
+head(non_syn)
+
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/SNPEFF/syn and non-syn")
+initiator_codon <- read.csv("initiator_codon_variant_clean.csv")
+head(initiator_codon)
+
+initiator_codon[, "chr"] = substring(initiator_codon$chr, 4)
+rs <- data.frame(paste0('rs_', initiator_codon$chr, '_', initiator_codon$ps)) 
+initiator_codon[, "X"] = rs
+names(initiator_codon)[6]<-paste("rs")
+initiator_codon <- subset(initiator_codon, type == "initiator_codon_variant")
+initiator_codon$geneic_intergenic <- paste('genic')
+head(initiator_codon)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+list.files()
+
+prime_3_UTR_variant <- read.csv("3_prime_UTR_variant_clean.csv")
+head(prime_3_UTR_variant)
+
+prime_3_UTR_variant[, "chr"] = substring(prime_3_UTR_variant$chr, 4)
+rs <- data.frame(paste0('rs_', prime_3_UTR_variant$chr, '_', prime_3_UTR_variant$ps)) 
+prime_3_UTR_variant[, "X"] = rs
+names(prime_3_UTR_variant)[6]<-paste("rs")
+prime_3_UTR_variant <- subset(prime_3_UTR_variant, type == "3_prime_UTR_variant")
+prime_3_UTR_variant$geneic_intergenic <- paste('genic')
+head(prime_3_UTR_variant)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+list.files()
+
+prime_5_UTR_start <- read.csv("5_prime_UTR_premature_start_codon_gain_variant_clean.csv")
+head(prime_5_UTR_start)
+
+prime_5_UTR_start[, "chr"] = substring(prime_5_UTR_start$chr, 4)
+rs <- data.frame(paste0('rs_', prime_5_UTR_start$chr, '_', prime_5_UTR_start$ps)) 
+prime_5_UTR_start[, "X"] = rs
+names(prime_5_UTR_start)[6]<-paste("rs")
+prime_5_UTR_start <- subset(prime_5_UTR_start, type == "5_prime_UTR_premature_start_codon_gain_variant")
+prime_5_UTR_start$geneic_intergenic <- paste('genic')
+head(prime_5_UTR_start)
+
+prime_5_UTR <- read.csv("5_prime_UTR_variant_clean.csv")
+head(prime_5_UTR)
+
+prime_5_UTR[, "chr"] = substring(prime_5_UTR$chr, 4)
+rs <- data.frame(paste0('rs_', prime_5_UTR$chr, '_', prime_5_UTR$ps)) 
+prime_5_UTR[, "X"] = rs
+names(prime_5_UTR)[6]<-paste("rs")
+prime_5_UTR <- subset(prime_5_UTR, type == "5_prime_UTR_variant")
+prime_5_UTR$geneic_intergenic <- paste('genic')
+head(prime_5_UTR)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+list.files()
+non_coding <- read.csv("non_coding_transcript_exon_variant_clean.csv")
+head(non_coding)
+
+non_coding[, "chr"] = substring(non_coding$chr, 4)
+rs <- data.frame(paste0('rs_', non_coding$chr, '_', non_coding$ps)) 
+non_coding[, "X"] = rs
+names(non_coding)[6]<-paste("rs")
+non_coding <- subset(non_coding, type == "non_coding_transcript_exon_variant")
+non_coding$geneic_intergenic <- paste('genic')
+head(non_coding)
+
+splice_acceptor <- read.csv("splice_acceptor_variant_clean.csv")
+head(splice_acceptor)
+
+splice_acceptor[, "chr"] = substring(splice_acceptor$chr, 4)
+rs <- data.frame(paste0('rs_', splice_acceptor$chr, '_', splice_acceptor$ps)) 
+splice_acceptor[, "X"] = rs
+names(splice_acceptor)[6]<-paste("rs")
+splice_acceptor <- subset(splice_acceptor, type == "splice_acceptor_variant&intron_variant")
+splice_acceptor$geneic_intergenic <- paste('genic')
+head(splice_acceptor)
+
+
+splice_donor <- read.csv("splice_donor_variant_clean.csv")
+head(splice_donor)
+
+splice_donor[, "chr"] = substring(splice_donor$chr, 4)
+rs <- data.frame(paste0('rs_', splice_donor$chr, '_', splice_donor$ps)) 
+splice_donor[, "X"] = rs
+names(splice_donor)[6]<-paste("rs")
+splice_donor <- subset(splice_donor, type == "splice_donor_variant&intron_variant")
+splice_donor$geneic_intergenic <- paste('genic')
+head(splice_donor)
+
+splice_region <- read.csv("splice_region_variant_clean.csv")
+head(splice_region)
+
+splice_region[, "chr"] = substring(splice_region$chr, 4)
+rs <- data.frame(paste0('rs_', splice_region$chr, '_', splice_region$ps)) 
+splice_region[, "X"] = rs
+names(splice_region)[6]<-paste("rs")
+#splice_region <- subset(splice_region, type == "splice_region_variant")
+splice_region$geneic_intergenic <- paste('genic')
+head(splice_region)
+
+###add all dataset 
+genic <- rbind (syn,non_syn,initiator_codon,prime_3_UTR_variant,prime_5_UTR_start,prime_5_UTR,non_coding,
+                splice_acceptor,splice_donor,splice_region)
+head(genic)
+dim(genic)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+#write.csv(genic,"1.genic.csv", row.names = FALSE)
+
+all <- merge(reseq_HS,genic, by = "rs",all.x = TRUE)
+head(all)
+
+all$geneic_intergenic <- ifelse(is.na(all$geneic_intergenic), "intergenic", all$geneic_intergenic)
+all = within(all, rm(chr.y,ps.y,REF,ALT))
+names(all)[2]<-paste("chr")
+names(all)[3]<-paste("ps")
+head(all)
+dim(all)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+#write.csv(all, "1.reseq_HS_genicVSnongenic.csv", row.names = FALSE)
+
+data <- read.csv("1.reseq_HS_genicVSnongenic.csv")
+head(data)
+
+data$logp <- -log10(data1$p_wald)
+
+#chr rearrangement
+dddf <- NULL
+
+for(i in 1:10) { 
+  chr <- subset(data, chr == i)[with(subset(data, chr == i),order(ps)),]
+  dddf <- rbind(dddf,chr)}
+
+data <- dddf 
+head(data)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+write.csv(data, "1.reseq_HS_genicVSnongenic_chrwise.csv", row.names = FALSE)
+
+```
+
+### SNP genic/intergenic enrichment
+
+```
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+list.files()
+
+data <- read.csv("1.reseq_HS_genicVSnongenic_chrwise.csv")
+head(data)
+
+Actual_fold_enrichment_genicTOintergenic <- quantile(subset(data, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(data, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+Actual_fold_enrichment_genicTOintergenic
+
+dddf <- NULL
+
+for(i in 1:10) { 
+  random_position <- data[sample(nrow(data), 1), ]
+  f <- rbind(data[which(data$rs == random_position$rs, arr.ind=TRUE):nrow(data),],data[1:(which(data$rs == random_position$rs, arr.ind=TRUE)-1),])
+  data[,"geneic_intergenic"] <- f$geneic_intergenic 
+  fold_enrichment <- quantile(subset(data, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(data, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+genicTOintergenic  <- as.data.frame(dddf)
+write.csv(genicTOintergenic, "genicTOintergenic.csv", row.names = FALSE)
+
+genicTOintergenic$ratio <- paste("genicTOintergenic")
+
+#fold_enrich <- rbind(nonsynBYsyn,genicTOintergenic)
+
+#write.csv(fold_enrich, "1.fold_enrichment.csv", row.names = FALSE)
+
+###Now miniAF correction
+
+##Minor allele frequency correction, whatever aboive 0.5 af just deduct 0.5.
+data_below_.5 <- subset(data, af < .5)
+data_above_.5 <- subset(data, af > .5)
+
+data_above_.5$af <- data_above_.5$af -0.5 
+
+data_cortd <- rbind(data_below_.5,data_above_.5)
+
+data_cortd <- data_cortd[with(data_cortd,order(chr)),]
+head(data_cortd)
+##minaf 0-0.1
+minaf_0.1 <- subset(data_cortd, af < .1) 
+minaf_0.1 <- minaf_0.1[with(minaf_0.1,order(chr)),]
+head(minaf_0.1)
+
+Actual_fold_enrichment_minaf_0.1 <- quantile(subset(minaf_0.1, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.1, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.1
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.1[sample(nrow(minaf_0.1), 1), ]
+  f <- rbind(minaf_0.1[which(minaf_0.1$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.1),],minaf_0.1[1:(which(minaf_0.1$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.1[,"geneic_intergenic"] <- f$geneic_intergenic 
+  fold_enrichment <- quantile(subset(minaf_0.1, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.1, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+genicTOintergenic_minaf_0.1  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(genicTOintergenic_minaf_0.1, "genicTOintergenic_minaf_0.1.csv", row.names = FALSE)
+
+genicTOintergenic_minaf_0.1$ratio <- paste("genicTOintergenic_minaf_0.1")
+
+##minaf 0.1-0.2
+minaf_0.2 <- subset(data_cortd, af < 0.2 & af > 0.1) 
+minaf_0.2 <- minaf_0.2[with(minaf_0.2,order(chr)),]
+head(minaf_0.2)
+
+Actual_fold_enrichment_minaf_0.2 <- quantile(subset(minaf_0.2, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.2, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.2
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.2[sample(nrow(minaf_0.2), 1), ]
+  f <- rbind(minaf_0.2[which(minaf_0.2$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.2),],minaf_0.2[1:(which(minaf_0.2$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.2[,"geneic_intergenic"] <- f$geneic_intergenic 
+  fold_enrichment <- quantile(subset(minaf_0.2, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.2, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+genicTOintergenic_minaf_0.2  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(genicTOintergenic_minaf_0.2, "genicTOintergenic_minaf_0.2.csv", row.names = FALSE)
+
+genicTOintergenic_minaf_0.2$ratio <- paste("genicTOintergenic_minaf_0.2")
+
+
+##minaf 0.2-0.3
+minaf_0.3 <- subset(data_cortd, af < 0.3 & af > 0.2) 
+minaf_0.3 <- minaf_0.3[with(minaf_0.3,order(chr)),]
+head(minaf_0.3)
+
+Actual_fold_enrichment_minaf_0.3 <- quantile(subset(minaf_0.3, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.3, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.3
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.3[sample(nrow(minaf_0.3), 1), ]
+  f <- rbind(minaf_0.3[which(minaf_0.3$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.3),],minaf_0.3[1:(which(minaf_0.3$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.3[,"geneic_intergenic"] <- f$geneic_intergenic 
+  fold_enrichment <- quantile(subset(minaf_0.3, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.3, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+genicTOintergenic_minaf_0.3  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(genicTOintergenic_minaf_0.3, "genicTOintergenic_minaf_0.3.csv", row.names = FALSE)
+
+genicTOintergenic_minaf_0.3$ratio <- paste("genicTOintergenic_minaf_0.3")
+
+##minaf 0.3-0.4
+minaf_0.4 <- subset(data_cortd, af < 0.4 & af > 0.3) 
+minaf_0.4 <- minaf_0.4[with(minaf_0.4,order(chr)),]
+head(minaf_0.4)
+
+Actual_fold_enrichment_minaf_0.4 <- quantile(subset(minaf_0.4, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.4, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.4
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.4[sample(nrow(minaf_0.4), 1), ]
+  f <- rbind(minaf_0.4[which(minaf_0.4$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.4),],minaf_0.4[1:(which(minaf_0.4$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.4[,"geneic_intergenic"] <- f$geneic_intergenic 
+  fold_enrichment <- quantile(subset(minaf_0.4, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.4, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+genicTOintergenic_minaf_0.4  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(genicTOintergenic_minaf_0.4, "genicTOintergenic_minaf_0.4.csv", row.names = FALSE)
+
+genicTOintergenic_minaf_0.4$ratio <- paste("genicTOintergenic_minaf_0.4")
+
+
+##minaf 0.4-0.5
+minaf_0.5 <- subset(data_cortd, af > 0.4) 
+minaf_0.5 <- minaf_0.5[with(minaf_0.5,order(chr)),]
+head(minaf_0.5)
+
+Actual_fold_enrichment_minaf_0.5 <- quantile(subset(minaf_0.5, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.5, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+Actual_fold_enrichment_minaf_0.5
+
+dddf <- NULL
+
+for(i in 1:100) { 
+  random_position <- minaf_0.5[sample(nrow(minaf_0.5), 1), ]
+  f <- rbind(minaf_0.5[which(minaf_0.5$rs == random_position$rs, arr.ind=TRUE):nrow(minaf_0.5),],minaf_0.5[1:(which(minaf_0.5$rs == random_position$rs, arr.ind=TRUE)-1),])
+  minaf_0.5[,"geneic_intergenic"] <- f$geneic_intergenic 
+  fold_enrichment <- quantile(subset(minaf_0.5, geneic_intergenic == "genic")$logp, probs = 0.95)/quantile(subset(minaf_0.5, geneic_intergenic == "intergenic")$logp, probs = 0.95)
+  dddf <- rbind(dddf,fold_enrichment)}
+
+genicTOintergenic_minaf_0.5  <- as.data.frame(dddf)
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(genicTOintergenic_minaf_0.5, "genicTOintergenic_minaf_0.5.csv", row.names = FALSE)
+
+genicTOintergenic_minaf_0.5$ratio <- paste("genicTOintergenic_minaf_0.5")
+
+
+###bind all
+
+fold_enrich <- rbind(genicTOintergenic,genicTOintergenic_minaf_0.1,genicTOintergenic_minaf_0.2,genicTOintergenic_minaf_0.3,genicTOintergenic_minaf_0.4,genicTOintergenic_minaf_0.5)
+
+#setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/minaf_correction")
+write.csv(fold_enrich, "1.fold_enrichment_MAF_correction_with_main.csv", row.names = FALSE)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+list.files()
+df <- read.csv("1.fold_enrichment_MAF_correction_with_main.csv") 
+head(df)
+##plotiing
+library(ggplot2)
+library(tidyverse)
+library(ggtext)
+library(normentR)
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(gridtext)
+library(palmerpenguins)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snp enrichment/genic vs non-genic")
+tiff("1.genicVSnon-genic_HS_100perm_MAFcor.tiff", width = 5, height = 6, units = 'in', res = 300)
+ggplot(df, aes(x=X95., y=ratio, color=ratio))+
+  geom_point(size=1)+
+  labs(x="Fold enrichment",y=NULL)+
+  scale_x_continuous(breaks=seq(0.914,1.081,0.055))+
+  scale_color_manual(values = c("#B4AF46", "#B4464B","#B47846","#7846B4","#82B446","deeppink"))+
+  geom_vline(xintercept = 1, linetype="dashed", color = "slategrey", size=1)+
+  annotate("pointrange", x = Actual_fold_enrichment_genicTOintergenic , y = 1, ymin = 1.010, ymax = 1.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.1 , y = 2, ymin = 1.010, ymax = 1.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.2 , y = 3, ymin = 2.010, ymax = 2.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.3 , y = 4, ymin = 1.010, ymax = 1.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.4 , y = 5, ymin = 2.010, ymax = 2.008,colour = "#4682B4",size = 2)+
+  annotate("pointrange", x = Actual_fold_enrichment_minaf_0.5 , y = 6, ymin = 2.010, ymax = 2.008,colour = "#4682B4",size = 2)+
+  theme_classic()+
+  theme(legend.position="none",text=element_text(size=16, colour = "black", family="Times New Roman"),
+        axis.line = element_line(size=0.5, colour = "black"),
+        axis.text.x=element_text(colour="black", size = 16),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+dev.off()
+```
