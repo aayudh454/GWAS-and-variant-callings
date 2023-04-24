@@ -874,6 +874,12 @@ ggplot() +
         axis.text.y=element_text(colour="black", size = 16)) 
 dev.off()
 ```
+**For RDA the REF and ALT**
+
+```
+grep -w '5569009' Chr05.txt > rs_5_5569009.csv
+```
+
 **Density plot**
 ```
 setwd("~/Library/CloudStorage/OneDrive-UniversityofVermont/PENN STATE/eGWAS_revised list/map SNPs")
