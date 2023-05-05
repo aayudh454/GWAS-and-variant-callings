@@ -35,6 +35,7 @@
 
 * [Page 17 2023-28-03](#id-section17). Chapter17: Genic Vs Intergenic enrichment 
 
+* [Page 18 2023-5-05](#id-section18). Chapter18: Python based eGWAS annotation pipeline  
 ------
 <div id='id-section1'/>
 
