@@ -5140,3 +5140,144 @@ ggplot(df, aes(x=X95., y=ratio, color=ratio))+
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 dev.off()
 ```
+
+-----
+<div id='id-section18'/>
+
+## Chapter 18: Python based annotations
+
+### Create a python script
+
+**Sbicolor_annot_5kb.csv consist of columns - "chr","gene","start","stop","direction","sobicID","start_5kb","stop_5kb"*
+*top1K_RDA1Sq_nlyAfrica.csv consist of columns - "SNPS","RDA1","RDA2","RDA1_squared","RDA2_squared","sq_RDA1plus2","chr","ps"**
+
+```
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[7]:
+
+
+import pandas as pd
+import multiprocess
+
+# read in the first CSV file with two columns
+df1 = pd.read_csv('Sbicolor_annot_5kb.csv')
+
+
+# In[8]:
+
+
+# read in the second CSV file with one column
+df2 = pd.read_csv('top1K_RDA1Sq_nlyAfrica.csv')
+
+
+# In[9]:
+
+
+import multiprocessing
+
+# create a function that filters df1 for a single PS value and returns the filtered DataFrame
+def filter_df1_for_ps(ps, df1, df2):
+    mask = (df1['chr'] == df2.loc[df2['ps'] == ps, 'chr'].iloc[0]) & (df1['start_5kb'] <= ps) & (df1['stop_5kb'] >= ps)
+    filtered_df1 = df1[mask]
+    if not filtered_df1.empty:
+        filtered_df1['SNPS'] = df2.loc[df2['ps'] == ps, 'SNPS'].iloc[0]
+        filtered_df1['RDA1_squared'] = df2.loc[df2['ps'] == ps, 'RDA1_squared'].iloc[0]
+        filtered_df1['ps'] = ps
+    return filtered_df1
+
+# define the number of CPU cores to use for parallelization
+num_cores = multiprocessing.cpu_count()
+
+# create a pool of worker processes
+pool = multiprocessing.Pool(num_cores)
+
+# apply the filter_df1_for_ps function to each PS value in df2 in parallel
+results = [pool.apply_async(filter_df1_for_ps, args=(ps, df1, df2)) for ps in df2['ps']]
+
+# combine the results into a single DataFrame
+merged_df = pd.concat([result.get() for result in results if not result.get().empty], ignore_index=True)
+merged_df.to_csv('1.RDA1_suared_nlyAfrica_Annotations.csv', index=False)
+```
+
+### Now to execute the .py script use this
+
+qsub this .sh file now.
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+# Load any required modules
+source ~/.bashrc
+module load anaconda3
+conda activate my_env
+
+# Change to the directory where the code and datafiles are located
+cd /gpfs/group/jrl35/default/aayudh/africa_drought_RDA
+
+# Run the Python script
+python3 annotation.py
+```
+
+### Use the Python based output to R
+```
+##Annotation-------
+#do python script 
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/RDA_drought/RDA_only_Africa/annotations")
+list.files()
+
+gwas_annot <- read.csv("1.RDA1_suared_nlyAfrica_Annotations.csv")
+head(gwas_annot)
+
+library(data.table)
+gwas_annot2 <- unique(setDT(gwas_annot)[order(SNPS, -SNPS)], by = "SNPS")
+dim(gwas_annot2)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/acessions and cords")
+Sorghum_mdata <- read.csv("Sbicolor_454_v3.1.1.annotation_info.csv", header = T)
+head(Sorghum_mdata)
+
+names(Sorghum_mdata)[2]<-paste("sobicID")
+
+annotation_Loc <- merge(Sorghum_mdata,gwas_annot2, by = "sobicID")
+dim(annotation_Loc)
+head(annotation_Loc)
+
+library(data.table)
+annotation_Loc_1 <- unique(setDT(annotation_Loc)[order(SNPS, -SNPS)], by = "SNPS")
+dim(annotation_Loc_1)
+head(annotation_Loc_1)
+annotation_Loc_2 <- annotation_Loc_1[order(-annotation_Loc_1$RDA1_squared),]
+head(annotation_Loc_2)
+
+library(data.table)
+new_order <- c("SNPS", "RDA1_squared", "sobicID", "arabi.defline", "rice.defline", 
+               setdiff(names(annotation_Loc_2), c("rs", "p_wald", "sobicID", "arabi.defline", "rice.defline")))
+setcolorder(annotation_Loc_2, new_order)
+
+head(annotation_Loc_2)
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/univariate_drought/annotations")
+list.files()
+write.csv(annotation_Loc_2,"1.RDA1_squared_nlyAfrica_annotations_final", row.names = FALSE)
+
+### before this step you need to manually edit the annot list
+
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/univariate_drought/annotations")
+list.files()
+top10 <- read.csv("top10_Wsrepro_annotations.csv")
+#export table
+library("gridExtra")
+tiff("top10_WSrepro_annotations.tiff", width = 10, height = 5, units = 'in', res = 300)
+par(family="Arial")
+grid.table(top10)
+dev.off()
+```
