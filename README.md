@@ -3923,6 +3923,8 @@ write.csv(df,"snpLDprunned.csv")
 ```
 ### Check correlation matrix and create drought.rda
 
+#### RDA resources: https://popgen.nescent.org/2018-03-27_RDA_GEA.html 
+
 ```
 #!/usr/bin/env Rscript
 
