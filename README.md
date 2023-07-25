@@ -5291,8 +5291,13 @@ dev.off()
 
 ## Chapter 19: Individual candidate analysis
 
-### Co-expression network and expression profiles
+### Expression profiles and Co-expression network 
 
 Go to https://plantnexus.ohio.edu/e/?plant=sorghum. Then change the sobic format to SORBI_3002G129900 format.  
 
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/expression_plantnexus.png)
+
+For co expression network, start from the global option, play around with mutual rank filter.
+
+![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/Co-expression_network.png)
+
