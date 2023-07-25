@@ -5294,3 +5294,5 @@ dev.off()
 ### Co-expression network and expression profiles
 
 Go to https://plantnexus.ohio.edu/e/?plant=sorghum. Then change the sobic format to SORBI_3002G129900 format.  
+
+![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/expression_plantnexus.png)
