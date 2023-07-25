@@ -35,7 +35,9 @@
 
 * [Page 17 2023-28-03](#id-section17). Chapter17: Genic Vs Intergenic enrichment 
 
-* [Page 18 2023-5-05](#id-section18). Chapter18: Python based eGWAS annotation pipeline  
+* [Page 18 2023-5-05](#id-section18). Chapter18: Python based eGWAS annotation pipeline
+  
+* [Page 19 2023-23-07](#id-section18). Chapter19: Analysing individual candidate
 ------
 <div id='id-section1'/>
 
@@ -5283,3 +5285,12 @@ par(family="Arial")
 grid.table(top10)
 dev.off()
 ```
+
+-----
+<div id='id-section19'/>
+
+## Chapter 19: Individual candidate analysis
+
+### Co-expression network and expression profiles
+
+Go to https://plantnexus.ohio.edu/e/?plant=sorghum. Then change the sobic format to SORBI_3002G129900 format.  
