@@ -37,7 +37,7 @@
 
 * [Page 18 2023-5-05](#id-section18). Chapter18: Python based eGWAS annotation pipeline
   
-* [Page 19 2023-23-07](#id-section18). Chapter19: Analysing individual candidate
+* [Page 19 2023-23-07](#id-section19). Chapter19: Analysing individual candidate
 ------
 <div id='id-section1'/>
 
