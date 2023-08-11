@@ -48,17 +48,8 @@ Login info: ssh -l azd6024 submit.aci.ics.psu.edu
 
 ### Data details
 Here is a vcf for variants (SNP, MNP, indel independently) for all the resequencing libraries of Sorghum. This includes
-375 BAP-TERRA
-90 CASP-TERRA-PNNL
-914 Gates
-21 GatesRef
-14 JGI_Ref
-109 Mullet
-230 TERRA-Cornell
-Download LInks:
-http://hagsc.org/restricted_access/sorg_wga/Sorghum_1757g_AllChr_1757g.tar.gz
-http://hagsc.org/restricted_access/sorg_wga/Sorghum_all_1757g_metadata.txt
-
+Sorghum_1757g_AllChr_1757g.tar.gz
+Sorghum_all_1757g_metadata.txt
 
 1. Code to wget
 ```
@@ -69,13 +60,7 @@ wget --user xyz --password xyz https://hagsc.org/restricted_access/sorg_wga/Sorg
 ```
 tar -zxvf Sorghum_1757g_AllChr_1757g.tar.gz
 ```
-**Getting GBS SNP data 10.3835/plantgenome2018.06.0044**
 
-ssh azd6024@128.118.42.11
-
-```
-cd /data/Sorghum/Hu_GBS_2019/
-```
 **DATA STORAGE IN LASKY LAB**
 
 ```
