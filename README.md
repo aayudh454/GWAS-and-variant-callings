@@ -1,4 +1,4 @@
-# LASKY-MORRIS LAB: Sorghum project
+# GWAS and variant callings
 
 ## Table of contents    
 * [Page 1: 2022-25-06](#id-section1). Chapter 1: Getting resequencing data 
