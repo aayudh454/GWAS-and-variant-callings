@@ -43,6 +43,8 @@
 
 ## Chapter 1: Getting resequencing data (by Aayudh)
 
+#### Getting to roar collab
+ssh azd6024@submit.hpc.psu.edu
 #Getting resequencing data
 Login info: ssh -l azd6024 submit.aci.ics.psu.edu
 
