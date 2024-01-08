@@ -182,6 +182,9 @@ echo "SnpEff annotation completed."
 
 ``` 
 
+```
+java -jar snpEff.jar build -gtf22 -v BT_assembly
+```
 
 
 
