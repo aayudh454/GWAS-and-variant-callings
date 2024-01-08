@@ -135,13 +135,56 @@ bgzip Sorghum_1757g_AllChr.polymorphic.snp.noRepeats.5pctMasked.imputed.combined
 
 <div id='id-section3'/>
 
-## Chapter 3: SnpEff (by Luke)
+## Chapter 3: SnpEff 
 
 **Introduction**
 SnpEff is an open source tool that annotates variants and predicts their effects on genes by using an interval forest approach. This program takes pre-determined variants listed in a data file that contains the nucleotide change and its position and predicts if the variants are deleterious.
 
 **Rationale**
 Running SnpEff provides predicted effect sizes for the observed SNPs in the variant dataset
+
+###switchgrass
+
+1.  unzip the vcf.gz
+2. Make database for your ref genome file
+
+```
+[azd6024@submit03 switchgrass]$ cp BT_assembly.fa BT_assembly
+[azd6024@submit03 switchgrass]$ java -jar snpEff/snpEff.jar build -gff3 -v BT_assembly
+```
+3. Now snpeff-
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+# Define variables
+WORKING_DIR="/storage/group/jrl35/default/aayudh/switchgrass"
+GENOME_FA="BT_assembly.fa"
+GENOME_VERSION="BT_assembly"  # Custom name for your genome version
+SNPEFF_DIR="$WORKING_DIR/snpEff" # Path to SnpEff installation
+SNPEFF_CONFIG="$SNPEFF_DIR/snpEff.config"
+VCF_FILE="307BRTE.imputed_filtered.vcf"      # Specified VCF file
+
+
+# Step 4: Run SnpEff for Variant Annotation
+echo "Running SnpEff for variant annotation..."
+java -Xmx24g -jar $SNPEFF_DIR/snpEff.jar BT_assembly $VCF_FILE > ${VCF_FILE}.ann.vcf
+
+echo "SnpEff annotation completed."
+
+``` 
+
+
+
+
 
 **Codes**
 
