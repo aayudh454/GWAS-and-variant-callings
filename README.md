@@ -81,6 +81,15 @@ Delete a job
 ```
 qdel 38423184 
 ```
+
+#### Subset a cvf.gz with bcftools
+
+```
+bcftools view -r chr1 HG01148_ERR022469.GRCh38.variants.vcf.gz -Oz -o HG01148_ERR022469.GRCh38.chr1.variants.vcf.gz
+
+bcftools query -f '%CHROM,%POS,%REF,%ALT\n' HG01148_ERR022469.GRCh38.chr1.variants.vcf.gz > chr1_variants.csv
+```
+
 -----
 <div id='id-section2'/>
 
