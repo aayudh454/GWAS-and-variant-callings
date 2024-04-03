@@ -46,7 +46,7 @@
 #### Getting to roar collab
 ssh azd6024@submit.hpc.psu.edu
 
-my folder: /storage/group/jrl35/default/aayudh/cheatgrass
+my folder: cd /storage/group/jrl35/default/aayudh/cheatgrass
 
 #Getting resequencing data
 Login info: ssh -l azd6024 submit.aci.ics.psu.edu
