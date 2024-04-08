@@ -38,6 +38,8 @@
 * [Page 18 2023-5-05](#id-section18). Chapter18: Python based eGWAS annotation pipeline
   
 * [Page 19 2023-23-07](#id-section19). Chapter19: Analysing individual candidate
+
+* [Page 20 2024-08-04](#id-section20). Chapter20:snpeff for Bromus tectorum
 ------
 <div id='id-section1'/>
 
@@ -5345,4 +5347,22 @@ Go to https://plantnexus.ohio.edu/e/?plant=sorghum. Then change the sobic format
 For co expression network, start from the global option, play around with mutual rank filter.
 
 ![alt text](https://github.com/aayudh454/Lasky-Morris-Lab-Sorghum-project/blob/main/Co-expression_network.png)
+
+-----
+<div id='id-section20'/>
+
+## Chapter 20: snpeff for Bromus tectorum
+
+### Step 1
+
+1) Inslide the snpeff directory make this path **/data/BT_assembly**. Put **sequences.fa** which is your refernce sequence (just use 1-7 chromosomes). then **genes.gtf**. Now we had to cobvert gff to gtf--
+
+```
+##gff to gtf (install gffread)
+/storage/group/jrl35/default/aayudh/cheatgrass/gffread/gffread filtered_genes.gff -T -o filtered_genes.gtf
+```
+
+2) 
+
+
 
