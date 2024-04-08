@@ -5399,7 +5399,7 @@ java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar build -c $CONFIG_FILE -noCheckProtein -g
 
 ### Step 1: Annnotation
 
-First, in your file 
+First, in your file change bt to chr exactly the way its in yhour refrence file and database. 
 
 ```
 #!/bin/bash
