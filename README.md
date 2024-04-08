@@ -5484,9 +5484,14 @@ grep -v "^#" 1_BT_variants_annotated.vcf | awk '{if ($8 ~ /HIGH/) print $0}' | w
 
 grep -v "^#" 1_BT_variants_annotated.vcf | awk '{if ($8 ~ /HIGH/) print $0}' > 2_HIGH_BT_variants_.vcf
 ```
-take the header 1_BT_variants_annotated.vcf
+
+take the header 1_BT_variants_annotated.vcf----
 
 ```
 grep "^#" 1_BT_variants_annotated.vcf > header.txt
+cat 2_HIGH_BT_variants.vcf >> header.txt
+
+mv header.txt 3_HIGH_BT_variants.txt
+
 ```
 
