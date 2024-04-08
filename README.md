@@ -39,7 +39,7 @@
   
 * [Page 19 2023-23-07](#id-section19). Chapter19: Analysing individual candidate
 
-* [Page 20 2024-08-04](#id-section20). Chapter20:snpeff for Bromus tectorum
+* [Page 20 2024-08-04](#id-section20). Chapter20: snpeff for Bromus tectorum
 ------
 <div id='id-section1'/>
 
@@ -5353,7 +5353,7 @@ For co expression network, start from the global option, play around with mutual
 
 ## Chapter 20: snpeff for Bromus tectorum
 
-### Step 1
+### Step 1: Database Build
 
 1) Inslide the snpeff directory make this path **/data/BT_assembly**. Put **sequences.fa** which is your refernce sequence (just use 1-7 chromosomes). then **genes.gtf**. Now we had to cobvert gff to gtf--
 
@@ -5362,7 +5362,40 @@ For co expression network, start from the global option, play around with mutual
 /storage/group/jrl35/default/aayudh/cheatgrass/gffread/gffread filtered_genes.gff -T -o filtered_genes.gtf
 ```
 
-2) 
+2) from sequence.fa to cds.fa--
+
+```
+/storage/group/jrl35/default/aayudh/cheatgrass/gffread/gffread -w /storage/group/jrl35/default/aayudh/cheatgrass/cds_protein/BT_cds.fa -g /storage/group/jrl35/default/aayudh/cheatgrass/cds_protein/filtered_sequences.fa /storage/group/jrl35/default/aayudh/cheatgrass/cds_protein/filtered_genes.gff
+```
+
+3) make a config file  
+
+```
+vi snpEffect.config
+# BT_assembly genome
+BT_assembly.genome : BT_assembly
+BT_assembly.reference : /storage/group/jrl35/default/aayudh/custom_genome_snpeff/snpEff/data/BT_assembly/sequences.fa
+```
+4) Now make a script to execute the database build
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+# Define variables
+SNPEFF_DIR="/storage/group/jrl35/default/aayudh/custom_genome_snpeff/snpEff"
+CONFIG_FILE="$SNPEFF_DIR/snpEffect.config"
+
+# Build the snpEff database for BT_assembly
+java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar build -c $CONFIG_FILE -noCheckProtein -gtf22 -v BT_assembly
+```
 
 
 
