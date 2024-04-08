@@ -5467,4 +5467,26 @@ java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar ann BT_assembly -c $CONFIG_FILE /storage
 
 ### Step 3: Find "HIGH" effect variant
 
+Find the 'HIGH' variant--
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+grep -v "^#" 1_BT_variants_annotated.vcf | awk '{if ($8 ~ /HIGH/) print $0}' | wc -l
+
+grep -v "^#" 1_BT_variants_annotated.vcf | awk '{if ($8 ~ /HIGH/) print $0}' > 2_HIGH_BT_variants_.vcf
+```
+take the header 1_BT_variants_annotated.vcf
+
+```
+grep "^#" 1_BT_variants_annotated.vcf > header.txt
+```
 
