@@ -5399,7 +5399,7 @@ java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar build -c $CONFIG_FILE -noCheckProtein -g
 
 ### Step 1: Annnotation
 
-First, in your file change bt to chr exactly the way its in yhour refrence file and database. 
+1) First, in your file change bt to chr exactly the way its in yhour refrence file and database. 
 
 ```
 #!/bin/bash
@@ -5424,3 +5424,25 @@ awk 'BEGIN{OFS="\t"}
 gzip > chrBt_modified_307BRTE.imputed_filtered.vcf.gz
 ```
 
+2) Now run the annnotation script.
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+# Define variables
+SNPEFF_DIR="/storage/group/jrl35/default/aayudh/custom_genome_snpeff/snpEff"
+CONFIG_FILE="$SNPEFF_DIR/snpEffect.config"
+
+# Build the snpEff database for BT_assembly
+#java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar build -c $CONFIG_FILE -noCheckProtein -gtf22 -v BT_assembly
+
+java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar ann BT_assembly -c $CONFIG_FILE /storage/group/jrl35/default/aayudh/custom_genome_snpeff/307BRTE.imputed_filtered.vcf > BT_variants_annotated.vcf
+```
