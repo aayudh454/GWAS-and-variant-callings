@@ -5424,7 +5424,25 @@ awk 'BEGIN{OFS="\t"}
 gzip > chrBt_modified_307BRTE.imputed_filtered.vcf.gz
 ```
 
-2) Now run the annnotation script.
+2) Convert to a vcf file
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+cd /storage/group/jrl35/default/aayudh/custom_genome_snpeff/vcf_gz_modufy
+
+zcat chrBt_modified_307BRTE.imputed_filtered.vcf.gz > chr_modified_variant_filtered.vcf
+```
+
+3) Now run the annnotation script.
 
 ```
 #!/bin/bash
@@ -5446,3 +5464,10 @@ CONFIG_FILE="$SNPEFF_DIR/snpEffect.config"
 
 java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar ann BT_assembly -c $CONFIG_FILE /storage/group/jrl35/default/aayudh/custom_genome_snpeff/307BRTE.imputed_filtered.vcf > BT_variants_annotated.vcf
 ```
+check the vcf.gz file
+
+```
+zcat chrBt_modified_307BRTE.imputed_filtered.vcf.gz | grep -Ev '^##' | less
+```
+
+
