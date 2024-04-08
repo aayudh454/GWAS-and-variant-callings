@@ -5397,5 +5397,30 @@ CONFIG_FILE="$SNPEFF_DIR/snpEffect.config"
 java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar build -c $CONFIG_FILE -noCheckProtein -gtf22 -v BT_assembly
 ```
 
+### Step 1: Annnotation
 
+First, in your file 
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+cd /storage/group/jrl35/default/aayudh/custom_genome_snpeff/vcf_gz_modufy
+
+zcat 307BRTE.imputed_filtered.vcf.gz | \
+awk 'BEGIN{OFS="\t"}
+    /^#/ {print; next}
+    {split($1,a,"chr");
+     if(length(a)==2 && a[2]+0>0)
+        $1="Bt" sprintf("%02d", a[2]);
+     print}' | \
+gzip > chrBt_modified_307BRTE.imputed_filtered.vcf.gz
+```
 
