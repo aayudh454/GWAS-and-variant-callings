@@ -5462,12 +5462,7 @@ CONFIG_FILE="$SNPEFF_DIR/snpEffect.config"
 # Build the snpEff database for BT_assembly
 #java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar build -c $CONFIG_FILE -noCheckProtein -gtf22 -v BT_assembly
 
-java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar ann BT_assembly -c $CONFIG_FILE /storage/group/jrl35/default/aayudh/custom_genome_snpeff/307BRTE.imputed_filtered.vcf > BT_variants_annotated.vcf
-```
-check the vcf.gz file
-
-```
-zcat chrBt_modified_307BRTE.imputed_filtered.vcf.gz | grep -Ev '^##' | less
+java -Xmx4g -jar $SNPEFF_DIR/snpEff.jar ann BT_assembly -c $CONFIG_FILE /storage/group/jrl35/default/aayudh/custom_genome_snpeff/vcf_gz_modufy/chr_modified_variant_filtered.vcf > /storage/group/jrl35/default/aayudh/custom_genome_snpeff/1_BT_variants_annotated.vcf
 ```
 
 
