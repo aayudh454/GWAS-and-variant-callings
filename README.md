@@ -5495,3 +5495,24 @@ mv header.txt 3_HIGH_BT_variants.txt
 
 ```
 
+modify high variant
+
+```
+data <- read.csv("New_out.csv", header=FALSE, check.names=FALSE)
+
+affected_rows <- grep("GT", data$V9, invert = TRUE, value = FALSE)
+
+for (row in affected_rows) {
+  # Shift columns V9 to V316 one position to the left
+  # Now we are considering V317 as the last column to shift data into
+  data[row, 8:316] <- data[row, 9:317]
+}
+data$V317[affected_rows] <- NA
+
+data1 <- data [,1:316]
+
+df <- read.csv("out.csv", header=FALSE, check.names=FALSE)
+df = df[, 1:316]
+
+names(data1) <- as.character(unlist(df[1, ]))
+```
