@@ -5531,5 +5531,26 @@ data1 <- data1 %>%
 data2 <- data1 %>%
   filter(Impact == "HIGH")
 ```
+count high variant
 
+```
+# Initialize a vector to store the counts
+counts <- integer()
+
+# Loop through columns 19 to 325 (assuming column 325 exists, adjust if needed)
+for(i in 19:325) {
+  # Count how many times "1|1" appears in each column
+  counts[i - 18] <- sum(data2[,i] == "1|1", na.rm = TRUE)
+}
+
+# Create a data frame with the results
+# Extracting names of the columns 19 to 325 for the names in our table
+column_names <- names(data2)[19:325]
+
+# Create the final table
+count_table <- data.frame(Genotype_ID = column_names, No_HIGH_variant = counts)
+
+# Print the table
+print(count_table)
+```
 
