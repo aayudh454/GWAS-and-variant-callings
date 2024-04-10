@@ -5553,4 +5553,9 @@ count_table <- data.frame(Genotype_ID = column_names, No_HIGH_variant = counts)
 # Print the table
 print(count_table)
 ```
+email
 
+```
+echo "Please find the attached CSV file." | mail -s "High Variant Count per Genotype CSV" -a /storage/group/jrl35/default/aayudh/bromus_tectorum_snpeff/1.high_variant_count_per_genotype.csv aayudhdas@gmail.com
+
+```
