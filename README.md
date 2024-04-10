@@ -5515,4 +5515,8 @@ df <- read.csv("out.csv", header=FALSE, check.names=FALSE)
 df = df[, 1:316]
 
 names(data1) <- as.character(unlist(df[1, ]))
+
+rs_split <- data.frame(do.call("rbind", strsplit(as.character(data1$INFO), "|", fixed = TRUE)))
 ```
+
+
