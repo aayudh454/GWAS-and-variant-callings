@@ -5516,7 +5516,20 @@ df = df[, 1:316]
 
 names(data1) <- as.character(unlist(df[1, ]))
 
-rs_split <- data.frame(do.call("rbind", strsplit(as.character(data1$INFO), "|", fixed = TRUE)))
+library(tidyr)
+library(dplyr)
+
+# Assuming you know or guess a max number of splits, e.g., 10 here
+# Replace `10` with the actual number of splits you expect
+data1 <- data1 %>%
+  separate(INFO, into = paste0("INFO_", 1:10), sep = "\\|", fill = "right")
+
+# Renaming columns using dplyr
+data1 <- data1 %>%
+  rename(Impact = INFO_3, Annotation = INFO_2)
+
+data2 <- data1 %>%
+  filter(Impact == "HIGH")
 ```
 
 
