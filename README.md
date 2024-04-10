@@ -5559,3 +5559,56 @@ email
 echo "Please find the attached CSV file." | mail -s "High Variant Count per Genotype CSV" -a /storage/group/jrl35/default/aayudh/bromus_tectorum_snpeff/1.high_variant_count_per_genotype.csv aayudhdas@gmail.com
 
 ```
+visualization- 
+
+```
+setwd("~/Library/CloudStorage/OneDrive-ThePennsylvaniaStateUniversity/snpeff_bromus")
+list.files()
+
+data <- read.csv("1.High_variant_rawDATA.csv")
+head(data)
+# Assuming your data is stored in a data.frame or data.table named 'filtered_data'
+number_of_unique_genes <- length(unique(data$gene))
+
+# Print the number of unique genes
+print(number_of_unique_genes)
+
+
+#write.csv(filtered_data, "GEB0017_130_SNPS_Intron_filtered_data.csv", row.names = FALSE)
+library(ggplot2)
+png("pie_chart.png", width = 10, height = 6, units = 'in', res = 300)
+ggplot(data, aes(x = "", fill = Annotation)) +
+  geom_bar(width = 1, stat = "count") +
+  geom_text(stat = "count", aes(label = stat(count)), position = position_stack(vjust = 0.5)) +
+  coord_polar("y") +
+  labs(title = paste(nrow(data), " HIGH variant"), y = NULL, x = NULL) +
+  theme_classic(base_family = "Arial") +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.5))  # Center the title
+dev.off()  
+
+df <- read.csv("1.high_variant_count_per_genotype.csv")
+head(df)
+
+png("bar_chart.png", width = 6, height = 6, units = 'in', res = 300)
+ggplot(df, aes(x = reorder(factor(Genotype_ID), No_HIGH_variant), y = No_HIGH_variant, fill = No_HIGH_variant)) +
+  geom_col() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(x = "Genotype ID", y = "Number of HIGH Variants", fill = "No. HIGH Variant") +
+  coord_flip() + # This inverts the plot
+  theme_classic(base_family = "Arial") +
+  theme(axis.text.x = element_text(angle = 0)) # Adjust the angle if needed for clarity
+dev.off()
+
+df1 <- df[order(-df$No_HIGH_variant),][1:50,]
+
+png("bar_top50_chart.png", width = 6, height = 6, units = 'in', res = 300)
+ggplot(df1, aes(x = reorder(factor(Genotype_ID), No_HIGH_variant), y = No_HIGH_variant, fill = No_HIGH_variant)) +
+  geom_col() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(x = "Genotype ID", y = "Number of HIGH Variants", fill = "No. HIGH Variant") +
+  coord_flip() + # This inverts the plot
+  theme_classic(base_family = "Arial") +
+  theme(axis.text.x = element_text(angle = 0))# Adjust the angle if needed for clarity
+dev.off()
+```
