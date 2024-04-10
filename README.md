@@ -5526,7 +5526,7 @@ data1 <- data1 %>%
 
 # Renaming columns using dplyr
 data1 <- data1 %>%
-  rename(Impact = INFO_3, Annotation = INFO_2)
+  rename(Impact = INFO_3, Annotation = INFO_2, Allele = INFO_1,Gene_Name = INFO_4, Gene_ID = INFO_5,)
 
 data2 <- data1 %>%
   filter(Impact == "HIGH")
