@@ -5617,3 +5617,69 @@ ggplot(df1, aes(x = reorder(factor(Genotype_ID), No_HIGH_variant), y = No_HIGH_v
   theme(axis.text.x = element_text(angle = 0))# Adjust the angle if needed for clarity
 dev.off()
 ```
+### Step 4: Find "synonymous variant" effect variant
+
+```
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -l pmem=24gb
+#PBS -M azd6024@psu.edu
+#PBS -A open
+#PBS -j oe
+#PBS -m abe
+
+#grep -v "^#" 1_BT_variants_annotated.vcf | awk '{if ($8 ~ /HIGH/) print $0}' | wc -l
+
+grep -v "^#"/storage/group/jrl35/default/aayudh/custom_genome_snpeff/1_BT_variants_annotated.vcf | awk '{if ($8 ~ /synonymous_variant/) print $0}' > /storage/group/jrl35/default/aayudh/custom_genome_snpeff/synonymous/synonymous_variant_BT.txt
+
+grep synonymous_variant /storage/group/jrl35/default/aayudh/custom_genome_snpeff/1_BT_variants_annotated.vcf > /storage/group/jrl35/default/aayudh/custom_genome_snpeff/synonymous/v2_synonymous_variant_BT_.txt
+```
+
+```
+data <- read.delim("v2_synonymous_variant_BT.txt", header=FALSE)
+head(data)
+
+df <- read.csv("out.csv", header=FALSE, check.names=FALSE)
+df = df[, 1:316]
+
+names(data) <- as.character(unlist(df[1, ]))
+head(data)
+
+library(tidyr)
+library(dplyr)
+
+# Assuming you know or guess a max number of splits, e.g., 10 here
+# Replace `10` with the actual number of splits you expect
+data1 <- data %>%
+  separate(INFO, into = paste0("INFO_", 1:10), sep = "\\|", fill = "right")
+
+# Renaming columns using dplyr
+data1 <- data1 %>%
+  rename(Impact = INFO_3, Annotation = INFO_2, Allele = INFO_1,Gene_Name = INFO_4, Gene_ID = INFO_5)
+
+data2 <- data1 %>%
+  filter(Annotation == "synonymous_variant")
+
+
+# Initialize a vector to store the counts
+counts <- integer()
+
+# Loop through columns 19 to 325 (assuming column 325 exists, adjust if needed)
+for(i in 19:325) {
+  # Count how many times "1|1" appears in each column
+  counts[i - 18] <- sum(data2[,i] == "1|1", na.rm = TRUE)
+}
+
+# Create a data frame with the results
+# Extracting names of the columns 19 to 325 for the names in our table
+column_names <- names(data2)[19:325]
+
+# Create the final table
+count_table <- data.frame(Genotype_ID = column_names, No_synonymous_variant = counts)
+
+# Print the table
+print(count_table)
+```
+
