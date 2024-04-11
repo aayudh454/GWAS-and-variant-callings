@@ -5353,6 +5353,11 @@ For co expression network, start from the global option, play around with mutual
 
 ## Chapter 20: snpeff for Bromus tectorum
 
+##### Getting to roar collab
+ssh azd6024@submit.hpc.psu.edu
+
+my folder: cd /storage/group/jrl35/default/aayudh/custom_genome_snpeff
+
 ### Step 1: Database Build
 
 1) Inslide the snpeff directory make this path **/data/BT_assembly**. Put **sequences.fa** which is your refernce sequence (just use 1-7 chromosomes). then **genes.gtf**. Now we had to cobvert gff to gtf--
