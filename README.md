@@ -1,7 +1,7 @@
 # GWAS and variant callings
 
 ## Table of contents    
-* [Page 1: 2022-25-06](#id-section1). Chapter 1: Getting resequencing data 
+* [Page 1: 2022-25-06](#id-section1). Chapter 1: Getting resequencing data  
 
 * [Page 2: 2022-30-06](#id-section2). Chapter 2: Running Beagle 
 
