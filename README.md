@@ -5637,6 +5637,8 @@ grep -v "^#"/storage/group/jrl35/default/aayudh/custom_genome_snpeff/1_BT_varian
 grep synonymous_variant /storage/group/jrl35/default/aayudh/custom_genome_snpeff/1_BT_variants_annotated.vcf > /storage/group/jrl35/default/aayudh/custom_genome_snpeff/synonymous/v2_synonymous_variant_BT_.txt
 ```
 
+#### Count the genotype
+
 ```
 data <- read.delim("v2_synonymous_variant_BT.txt", header=FALSE)
 head(data)
